@@ -1,0 +1,6 @@
+@font-face {
+  font-family: 'Dancing Script';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Dancing Script Bold'), local('DancingScript-Bold'), url(/fonts/dancingscript_v6.ttf) format('truetype');
+}
