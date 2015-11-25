@@ -1,9 +1,85 @@
 <?php
+use Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator;
 require_once('/usr/share/simplesamlphp/lib/_autoload.php');
+require_once('vendor/autoload.php');
+require_once('Db.php');
 $as = new SimpleSAML_Auth_Simple('default-sp');
 $as->requireAuth();
 $attributes = $as->getAttributes();
 //print_r($attributes);
+
+//connectdb
+$db_rest = Db::Connection("coturn-rest");
+$db_ltc = Db::Connection("coturn-ltc");
+
+
+
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+    // AJAX request
+    
+    switch($_POST["form"]){
+        case "feedback":
+            $mail = new PHPMailer;
+            //$mail->SMTPDebug = 3;                               // Enable verbose debug output
+            
+            $mail->isSMTP();                                      // Set mailer to use SMTP
+            $mail->Host = 'localhost';  // Specify main and backup SMTP servers
+        
+            $mail->CharSet = "UTF-8";
+            
+            $mail->setFrom('video-admin@niif.hu', 'Contact Webform');
+            // set recipient
+            $mail->addAddress('video-admin@niif.hu', 'Voice Video Collaboration');     // Add a recipient
+            
+            $mail->isHTML(true);                                  // Set email format to HTML
+            
+            $mail->Subject = 'Contact Form from brain.lab.vvc.niif.hu';
+            $mail->Body    = "Name: ".$_POST['Name']."<br>Email: ".$_POST['Email']."<br>Phone: ".$_POST['Phone']."<br>Message:".$_POST['Message'];
+            $mail->AltBody = "Name: ".$_POST['Name']."\nEmail: ".$_POST['Email']."\nPhone: ".$_POST['Phone']."\nMessage:".$_POST['Message'];
+            
+            if(!$mail->send()) {
+                http_response_code(500);
+                echo 'Message could not be sent.';
+                echo 'Mailer Error: ' . $mail->ErrorInfo;
+            } else {
+                echo 'Message has been sent';
+                // We delete the addresses of distributer and owner.
+                $mail->ClearAddresses();
+                
+                $mail->addAddress($_POST['Email'], $_POST['Name']);     // Add a recipient
+                $mail->Subject = 'Your feedback is highly Appreciated!';
+                $mail->Body = "Many thanks for Your feedback, we will contact you soon..<br><br>Lab Team";
+            	$mail->AltBody = "Many thanks for Your feedback, we will contact you soon..\n\nLab Team";
+                
+                if($mail->Send()){  }else{ $error = "Error sending feedback message to the user! <br/>"; }
+            }
+            break;
+        case "renewpassword":
+            $generator = new ComputerPasswordGenerator();
+            
+            $generator
+              ->setUppercase()
+              ->setLowercase()
+              ->setNumbers()
+              ->setSymbols(false)
+              ->setLength(16);
+            
+            $password = $generator->generatePasswords();
+            break;
+        case "token":
+            $generator = new ComputerPasswordGenerator();
+            
+            $generator
+              ->setUppercase()
+              ->setLowercase()
+              ->setNumbers()
+              ->setSymbols(false)
+              ->setLength(32);
+            break;
+            $token = $generator->generatePasswords();
+    }
+ 
+} else {
 ?>
 <!DOCTYPE html>
 <html>
@@ -35,10 +111,10 @@ $attributes = $as->getAttributes();
                         <a class="page-scroll" href="#one">Intro</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#two">Long Term Credential</a>
+                        <a class="page-scroll" href="#two">Password</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#three">REST API</a>
+                        <a class="page-scroll" href="#three">REST</a>
                     </li>
                     <li>
                         <a class="page-scroll" href="#four">Oauth</a>
@@ -59,7 +135,7 @@ $attributes = $as->getAttributes();
         <div class="header-content">
             <div class="inner">
                 <h1 style="visibility: visible; animation-name: flipInX;" class="cursive wow flipInX">STUN/TURN federation pilot</h1>
-                <h4>A federated joint effort to build STUN/TURN infrastructure for ICE(Interactive Connectivity Establishment) agents.</h4>
+                <h4>A federated joint effort to build STUN/TURN infrastructure for ICE (Interactive Connectivity Establishment) agents.</h4>
                 <hr>
                 <a href="#video-background" id="toggleVideo" data-toggle="collapse" class="btn btn-primary btn-xl">Toggle Video</a> &nbsp; <a href="#one" class="btn btn-primary btn-xl page-scroll">Get Started</a>
             </div>
@@ -72,7 +148,7 @@ $attributes = $as->getAttributes();
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 text-center">
-                    <h2 class="margin-top-0 text-primary">Built On The Bootstrap Grid</h2>
+                    <h2 class="margin-top-0 text-primary">Welcome Built On The Bootstrap Grid</h2>
                     <br>
                     <p class="text-faded">
                         Bootstrap's responsive grid comes in 4 sizes or "breakpoints": tiny (xs), small(sm), medium(md) and large(lg). These 4 grid sizes enable you create responsive layouts that behave accordingly on different devices.
@@ -86,31 +162,61 @@ $attributes = $as->getAttributes();
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2 class="margin-top-0 text-primary">Flexible Layouts</h2>
+                    <h2 class="margin-top-0 text-primary">Password (Long Term Credential Mechanism)</h2>
                     <hr class="primary">
                 </div>
+            </div>
+        </div>
+       
+        <div class="container">
+            <div class="row col-md-8 col-md-offset-2 custyle">
+            <table class="table">
+            <thead>
+            <a href="#" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new realm</a>
+                <tr>
+                    <th>Username</th>
+                    <th>Realm</th>
+                    <th>MD5(username:realm:password)</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+<?php       
+$query="SELECT * FROM turnusers_lt where eppn='".$attributes["eduPersonPrincipalName"][0]."'";
+$sth = $db_ltc->prepare($query);
+$sth->execute();
+$result = $sth->fetchAll(PDO::FETCH_ASSOC);
+foreach ($result as $row => $columns) {
+echo"                    <tr>
+                        <td>".$columns["name"]."</td>
+                        <td>".$columns["realm"]."</td>
+                        <td>".$columns["hmackey"]."</d>
+                        <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
+                    </tr>";
+}
+?>
+           </table>
             </div>
         </div>
         <div class="container">
             <div class="row">
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-android-laptop wow fadeIn" data-wow-delay=".3s"></i>
-                        <h3>Responsive</h3>
-                        <p class="text-muted">Your site looks good everywhere</p>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-earth wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>Distributed</h3>
+                        <p class="text-muted">The Service is distributed around Europe.</p>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-social-sass wow fadeInUp" data-wow-delay=".2s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-people-outline wow fadeInUp" data-wow-delay=".2s"></i>
                         <h3>Customizable</h3>
                         <p class="text-muted">Easy to theme and customize with SASS</p>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-ios-star-outline wow fadeIn" data-wow-delay=".3s"></i>
-                        <h3>Consistent</h3>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-ios-telephone-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>VoIP</h3>
                         <p class="text-muted">A mature, well-tested, stable codebase</p>
                     </div>
                 </div>
@@ -291,26 +397,26 @@ $attributes = $as->getAttributes();
                     <p>We love feedback. Fill out the form below and we'll get back to you as soon as possible.</p>
                 </div>
                 <div class="col-lg-10 col-lg-offset-1 text-center">
-                    <form class="contact-form row">
+                    <form class="contact-form row" id="contact-form" method="post">
                         <div class="col-md-4">
                             <label></label>
-                            <input class="form-control" placeholder="Name" type="text">
+                            <input class="form-control" placeholder="Name" type="text" name="Name" value="<?php echo $attributes['displayName'][0];?>">
                         </div>
                         <div class="col-md-4">
                             <label></label>
-                            <input class="form-control" placeholder="Email" type="text">
+                            <input class="form-control" placeholder="Email" type="text" name="Email" value="<?php echo $attributes['mail'][0];?>">
                         </div>
                         <div class="col-md-4">
                             <label></label>
-                            <input class="form-control" placeholder="Phone" type="text">
+                            <input class="form-control" placeholder="Phone" name="Phone" type="text">
                         </div>
                         <div class="col-md-12">
                             <label></label>
-                            <textarea class="form-control" rows="9" placeholder="Your message here.."></textarea>
+                            <textarea class="form-control" rows="9" id="contact-form-message" name="Message" placeholder="Your message here.."></textarea>
                         </div>
                         <div class="col-md-4 col-md-offset-4">
                             <label></label>
-                            <button type="button" data-toggle="modal" data-target="#alertModal" class="btn btn-primary btn-block btn-lg">Send <i class="ion-android-arrow-forward"></i></button>
+                            <button type="submit" class="btn btn-primary btn-block btn-lg">Send <i class="ion-android-arrow-forward"></i></button>
                         </div>
                     </form>
                 </div>
@@ -334,8 +440,8 @@ $attributes = $as->getAttributes();
                     <ul class="list-unstyled">
                         <li><a href="#">Contact Us</a></li>
                         <li><a href="#">Delivery Information</a></li>
-                        <li><a href="#">Privacy Policy</a></li>
-                        <li><a href="#">Terms &amp; Conditions</a></li>
+                        <li><a href="privacy.html">Privacy Policy</a></li>
+                        <li><a href="terms.html">Terms &amp; Conditions</a></li>
                     </ul>
                 </div>
                 <div class="col-xs-12 col-sm-3 column">
@@ -354,12 +460,11 @@ $attributes = $as->getAttributes();
                     <ul class="list-inline">
                       <li><a rel="nofollow" href="" title="Twitter"><i class="icon-lg ion-social-twitter-outline"></i></a>&nbsp;</li>
                       <li><a rel="nofollow" href="" title="Facebook"><i class="icon-lg ion-social-facebook-outline"></i></a>&nbsp;</li>
-                      <li><a rel="nofollow" href="" title="Dribble"><i class="icon-lg ion-social-dribbble-outline"></i></a></li>
                     </ul>
                 </div>
             </div>
             <br>
-            <span class="pull-right text-muted small"><a href="http://www.bootstrapzero.com">Landing Zero by BootstrapZero</a> ©2015 Company</span>
+            <span class="pull-right text-muted small"><a href="http://www.niif.hu">NIIF Institute</a> ©2015 Mészáros Mihály</span>
         </div>
     </footer>
     <div id="galleryModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -414,5 +519,24 @@ $attributes = $as->getAttributes();
     <script src="js/jquery.easing_1.3.min.js"></script>
     <script src="js/wow_1.1.2.js"></script>
     <script src="js/scripts.js"></script>
+    <script>
+        $(function(){
+            $('#contact-form').on('submit', function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST', //or POST
+                    data: $('#contact-form').serialize(),
+                    success: function(data){
+                          $("#alertModal").modal('show');
+                          $('#contact-form-message').val("");
+                          
+                    }
+                });
+            });
+        });
+    </script>
   </body>
 </html>
+
+<?php } ?>

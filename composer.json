@@ -1,0 +1,6 @@
+{
+    "require": {
+        "phpmailer/phpmailer": "^5.2",
+        "hackzilla/password-generator": "^1.1"
+    }
+}
