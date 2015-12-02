@@ -7,14 +7,14 @@ $as = new SimpleSAML_Auth_Simple('default-sp');
 $as->requireAuth();
 $attributes = $as->getAttributes();
 //print_r($attributes);
-
+$logout_url='https://brain.lab.vvc.niif.hu/';
 //connectdb
 $db_rest = Db::Connection("coturn-rest");
 $db_ltc = Db::Connection("coturn-ltc");
 
 
 
-if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && !empty($_POST)) {
     // AJAX request
     
     switch($_POST["form"]){
@@ -66,17 +66,27 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             
             $password = $generator->generatePasswords();
             break;
-        case "token":
+        case "addservice":
             $generator = new ComputerPasswordGenerator();
             
             $generator
-              ->setUppercase()
+              ->setUppercase(false)
               ->setLowercase()
               ->setNumbers()
               ->setSymbols(false)
               ->setLength(32);
-            break;
             $token = $generator->generatePasswords();
+	    
+	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values('".$attributes["eduPersonPrincipalName"][0]."','".$attributes["mail"][0]."','".$attributes["displayName"][0]."','".$token[0]."','".$_POST['service_url']."');";
+            $sth = $db_rest->prepare($query);
+            if($sth->execute()){
+		//success
+	    } else {
+		http_response_code(500);
+		echo $query;
+		echo 'New service could not be inserted.';
+	    }
+            break;
     }
  
 } else {
@@ -103,7 +113,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand page-scroll" href="https://vvc.niif.hu"><i class="ion-ios-flask-outline"></i> NIIF VVC Laboratory</a>
+                <a class="navbar-brand page-scroll" href="https://vvc.niif.hu/en/node/64"><i class="ion-ios-flask-outline"></i> NIIF VVC Laboratory</a>
             </div>
             <div class="navbar-collapse collapse" id="bs-navbar">
                 <ul class="nav navbar-nav">
@@ -114,7 +124,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                         <a class="page-scroll" href="#two">Password</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#three">REST</a>
+                        <a class="page-scroll" href="#three">REST API</a>
                     </li>
                     <li>
                         <a class="page-scroll" href="#four">Oauth</a>
@@ -122,7 +132,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <li>
                         <a class="page-scroll" href="#last">Contact</a>
                     </li>
-                </ul>
+                    <li>
+                        <a href="logout.php">Logout</a>
+                    </li>
+                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <li>
                         <a class="page-scroll" data-toggle="modal" title="A free Bootstrap video landing theme" href="#aboutModal">About</a>
@@ -148,12 +161,12 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 text-center">
-                    <h2 class="margin-top-0 text-primary">Welcome Built On The Bootstrap Grid</h2>
+                    <h2 class="margin-top-0 text-primary">Welcome to STUN/TURN pilot</h2>
                     <br>
                     <p class="text-faded">
-                        Bootstrap's responsive grid comes in 4 sizes or "breakpoints": tiny (xs), small(sm), medium(md) and large(lg). These 4 grid sizes enable you create responsive layouts that behave accordingly on different devices.
+                       Lorem ipsum dolor sit amet, ei sed tale appetere, at quo nonumes dissentias. Decore praesent sed et, sit id summo invenire efficiendi. Et mei commodo sententiae, vis an aeterno complectitur, elitr audire pro in. Sit sumo mutat epicuri ea, minim integre his cu. Ne his ridens docendi, ut vis noster audire. 
                     </p>
-                    <a href="#three" class="btn btn-default btn-xl page-scroll">Learn More</a>
+                    <a href="#six" class="btn btn-default btn-xl page-scroll">Learn More</a>
                 </div>
             </div>
         </div>
@@ -162,12 +175,12 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2 class="margin-top-0 text-primary">Password (Long Term Credential Mechanism)</h2>
+                    <h2 class="margin-top-0 text-primary">Password</h2>
+                    <h3>Long Term Credential Mechanism</h3>
                     <hr class="primary">
                 </div>
             </div>
         </div>
-       
         <div class="container">
             <div class="row col-md-8 col-md-offset-2 custyle">
             <table class="table">
@@ -189,7 +202,7 @@ foreach ($result as $row => $columns) {
 echo"                    <tr>
                         <td>".$columns["name"]."</td>
                         <td>".$columns["realm"]."</td>
-                        <td>".$columns["hmackey"]."</d>
+                        <td>".$columns["hmackey"]."</td>
                         <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
                     </tr>";
 }
@@ -201,34 +214,127 @@ echo"                    <tr>
             <div class="row">
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-earth wow fadeIn" data-wow-delay=".3s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-ios-telephone-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>Legacy</h3>
+                        <p class="text-muted">For legacy Soft/Hard phones and VC systems</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
+                        <h3>Secure</h3>
+                        <p class="text-muted">Protection against dictionary attacks</p>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-4 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
                         <h3>Distributed</h3>
-                        <p class="text-muted">The Service is distributed around Europe.</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-4 text-center">
-                    <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-people-outline wow fadeInUp" data-wow-delay=".2s"></i>
-                        <h3>Customizable</h3>
-                        <p class="text-muted">Easy to theme and customize with SASS</p>
-                    </div>
-                </div>
-                <div class="col-lg-4 col-md-4 text-center">
-                    <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-ios-telephone-outline wow fadeIn" data-wow-delay=".3s"></i>
-                        <h3>VoIP</h3>
-                        <p class="text-muted">A mature, well-tested, stable codebase</p>
+                        <p class="text-muted">The Service is distributed around Europe</p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <section id="three" class="no-padding">
+    <section class="bg-dark" id="three">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="margin-top-0 text-primary">REST API</h2>
+                    <h3>Time Limited Long Term Credential Mechanism</h2>
+                    <hr class="primary">
+                </div>
+            </div>
+        </div>
+        <div class="container text-center">
+            <div class="call-to-action">
+                <h2 style="visibility: hidden; animation-name: none;" class="text-primary">Get Started</h2>
+                <a href="/restapi" target="ext" class="btn btn-default btn-lg wow flipInX">The REST API Documentation</a>
+            </div>
+         </div>       
+        <div class="container" id="tokens">
+            <div class="row col-md-8 col-md-offset-2 custyle" id="token_table">
+            <table class="table">
+            <thead>
+            <a href="#addServiceModal" data-toggle="modal" data-target="#addServiceModal" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new service</a>
+                <tr>
+                    <th>Token (api_key)</th>
+                    <th>Service URL</th>
+                    <th>Realm</th>
+                    <th>Expire</th>
+                    <th class="text-center">Action</th>
+                </tr>
+            </thead>
+<?php       
+$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn='".$attributes["eduPersonPrincipalName"][0]."'";
+$sth = $db_rest->prepare($query);
+$sth->execute();
+$result = $sth->fetchAll(PDO::FETCH_ASSOC);
+foreach ($result as $row => $columns) {
+echo"                    <tr>
+                        <td>".$columns["token"]."</td>
+                        <td>".$columns["service_url"]."</td>
+                        <td>".$columns["realm"]."</td>
+                        <td>".$columns["expire"]."</td>
+                        <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
+                    </tr>";
+}
+?>
+           </table>
+            </div>
+        </div>
+
+         <div class="container">
+            <div class="row">
+                <div class="col-lg-3 col-md-3 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-social-chrome-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>WebRTC</h3>
+                        <p class="text-muted">Designed for WebRTC usage</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
+                        <h3>Secure</h3>
+                        <p class="text-muted">Protection against many attacks</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-arrow-swap wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>Compatibility</h3>
+                        <p class="text-muted">Client side backward compatibility</p>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-3 text-center">
+                    <div class="feature">
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <h3>Distributed</h3>
+                        <p class="text-muted">Distributed around Europe</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="four">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="margin-top-0 text-primary">OAUTH</h2>
+                    <h3>Third Party Authorization Mechanism</h3>
+                    <hr class="primary">
+                    <h1>It is in the pipe<hr> comming soon...</h1>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section id="five" class="no-padding">
         <div class="container-fluid">
             <div class="row no-gutter">
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/unsplash/regular/photo-1430916273432-273c2db881a0%3Fq%3D75%26fm%3Djpg%26w%3D1080%26fit%3Dmax%26s%3Df047e8284d2fdc1df0fd57a5d294614d">
-                        <img src="//splashbase.s3.amazonaws.com/unsplash/regular/photo-1430916273432-273c2db881a0%3Fq%3D75%26fm%3Djpg%26w%3D1080%26fit%3Dmax%26s%3Df047e8284d2fdc1df0fd57a5d294614d" class="img-responsive" alt="Image 1">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-002.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-002.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -239,8 +345,8 @@ echo"                    <tr>
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/getrefe/regular/tumblr_nqune4OGHl1slhhf0o1_1280.jpg">
-                        <img src="//splashbase.s3.amazonaws.com/getrefe/regular/tumblr_nqune4OGHl1slhhf0o1_1280.jpg" class="img-responsive" alt="Image 2">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-003.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-003.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -251,8 +357,8 @@ echo"                    <tr>
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/unsplash/regular/photo-1433959352364-9314c5b6eb0b%3Fq%3D75%26fm%3Djpg%26w%3D1080%26fit%3Dmax%26s%3D3b9bc6caa190332e91472b6828a120a4">
-                        <img src="//splashbase.s3.amazonaws.com/unsplash/regular/photo-1433959352364-9314c5b6eb0b%3Fq%3D75%26fm%3Djpg%26w%3D1080%26fit%3Dmax%26s%3D3b9bc6caa190332e91472b6828a120a4" class="img-responsive" alt="Image 3">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-004.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-004.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -263,8 +369,80 @@ echo"                    <tr>
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-moto-drawing-illusion-nabeel-1440x960.jpg">
-                        <img src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-moto-drawing-illusion-nabeel-1440x960.jpg" class="img-responsive" alt="Image 4">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-005.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-005.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-006.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-006.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-007.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-007.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-008.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-008.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-009.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-009.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-010.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-010.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-013.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-013.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -275,8 +453,8 @@ echo"                    <tr>
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-new-york-crosswalk-nabeel-1440x960.jpg">
-                        <img src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-new-york-crosswalk-nabeel-1440x960.jpg" class="img-responsive" alt="Image 5">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-014.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-014.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -287,8 +465,8 @@ echo"                    <tr>
                     </a>
                 </div>
                 <div class="col-lg-4 col-sm-6">
-                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-clothes-exotic-travel-nabeel-1440x960.jpg">
-                        <img src="//splashbase.s3.amazonaws.com/lifeofpix/regular/Life-of-Pix-free-stock-photos-clothes-exotic-travel-nabeel-1440x960.jpg" class="img-responsive" alt="Image 6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-015.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-015.jpg" class="img-responsive" alt="Image 1">
                         <div class="gallery-box-caption">
                             <div class="gallery-box-content">
                                 <div>
@@ -298,10 +476,46 @@ echo"                    <tr>
                         </div>
                     </a>
                 </div>
-            </div>
+                <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-016.jpg">
+                        <img src="img/slides-87-behave-10/slides-87-behave-10-page-016.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-90-tram-6/slides-90-tram-6-page-004.jpg">
+                        <img src="img/slides-90-tram-6/slides-90-tram-6-page-004.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-4 col-sm-6">
+                    <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-90-tram-6/slides-90-tram-6-page-011.jpg">
+                        <img src="img/slides-90-tram-6/slides-90-tram-6-page-011.jpg" class="img-responsive" alt="Image 1">
+                        <div class="gallery-box-caption">
+                            <div class="gallery-box-content">
+                                <div>
+                                    <i class="icon-lg ion-ios-search"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+             </div>
         </div>
     </section>
-    <section class="container-fluid" id="four">
+    <section class="container-fluid" id="six">
         <div class="row">
             <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
                 <h2 class="text-center text-primary">Features</h2>
@@ -362,7 +576,7 @@ echo"                    <tr>
         <div class="container text-center">
             <div class="call-to-action">
                 <h2 style="visibility: hidden; animation-name: none;" class="text-primary">Get Started</h2>
-                <a href="http://www.bootstrapzero.com/bootstrap-template/landing-zero" target="ext" class="btn btn-default btn-lg wow flipInX">Free Download</a>
+                <a href="http://coturn.net" target="ext" class="btn btn-default btn-lg wow flipInX">This Service is based on: COTURN</a>
             </div>
             <br>
             <hr>
@@ -370,18 +584,18 @@ echo"                    <tr>
             <div class="row">
                 <div class="col-lg-10 col-lg-offset-1">
                     <div class="row">
-                        <h6 class="wide-space text-center">BOOTSTRAP IS BASED ON THESE STANDARDS</h6>
+                        <h6 class="wide-space text-center">THE SERVICE IS BASED ON OPEN STANDARDS</h6>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-social-tux" title="Debian Linux"></i>
+                        </div>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-ios-paper-outline" title="IETF Open Standards"></i>
+                        </div>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-ribbon-b" title="Standards"></i>
+                        </div>
                         <div class="col-sm-3 col-xs-6 text-center">
                             <i class="icon-lg ion-social-html5-outline" title="html 5"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-social-sass" title="sass"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-social-javascript-outline" title="javascript"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-social-css3-outline" title="css 3"></i>
                         </div>
                     </div>
                 </div>
@@ -398,6 +612,7 @@ echo"                    <tr>
                 </div>
                 <div class="col-lg-10 col-lg-offset-1 text-center">
                     <form class="contact-form row" id="contact-form" method="post">
+                        <input type="hidden" name="form" value="feedback">
                         <div class="col-md-4">
                             <label></label>
                             <input class="form-control" placeholder="Name" type="text" name="Name" value="<?php echo $attributes['displayName'][0];?>">
@@ -429,17 +644,17 @@ echo"                    <tr>
                 <div class="col-xs-6 col-sm-3 column">
                     <h4>Information</h4>
                     <ul class="list-unstyled">
-                        <li><a href="">Products</a></li>
-                        <li><a href="">Services</a></li>
-                        <li><a href="">Benefits</a></li>
-                        <li><a href="">Developers</a></li>
-                    </ul>
+                        <li><a href="https://www.assembla.com/spaces/gn4-webrtc/">Assembla</a></li>
+                        <li><a href="https://wiki.geant.org/display/SA8/GN4+SA8+Internal+Wiki">Wiki</a></li>
+                        <li><a href="https://intranet.geant.org/gn4/1/Activities/SA8/SitePages/Home.aspx">GÉANT SA8</a></li>
+                        <li><a href="https://wiki.geant.org/display/WRTC/TF-WebRTC+Task+Force+on+WebRTC">TF-WebRTC</a></li>
+                     </ul>
                 </div>
                 <div class="col-xs-6 col-sm-3 column">
                     <h4>About</h4>
                     <ul class="list-unstyled">
-                        <li><a href="#">Contact Us</a></li>
-                        <li><a href="#">Delivery Information</a></li>
+                        <li><a href="mailto:gn4-1-webrtc@lists.geant.org">Contact Us</a></li>
+                        <li><a href="mailto:gn4-1-webrtc@lists.geant.org?subject=Technical Support">Support</a></li>
                         <li><a href="privacy.html">Privacy Policy</a></li>
                         <li><a href="terms.html">Terms &amp; Conditions</a></li>
                     </ul>
@@ -458,13 +673,14 @@ echo"                    <tr>
                 <div class="col-xs-12 col-sm-3 text-right">
                     <h4>Follow</h4>
                     <ul class="list-inline">
-                      <li><a rel="nofollow" href="" title="Twitter"><i class="icon-lg ion-social-twitter-outline"></i></a>&nbsp;</li>
-                      <li><a rel="nofollow" href="" title="Facebook"><i class="icon-lg ion-social-facebook-outline"></i></a>&nbsp;</li>
+                      <li><a rel="nofollow" href="http://twitter.com/GEANTnews" title="Twitter"><i class="icon-lg ion-social-twitter-outline"></i></a>&nbsp;</li>
+                      <li><a rel="nofollow" href="http://www.facebook.com/GEANTnetwork" title="Facebook"><i class="icon-lg ion-social-facebook-outline"></i></a>&nbsp;</li>
+                      <li><a rel="nofollow" href="http://www.youtube.com/GEANTtv" title="YouTube"><i class="icon-lg ion-social-youtube-outline"></i></a>&nbsp;</li>
                     </ul>
                 </div>
             </div>
             <br>
-            <span class="pull-right text-muted small"><a href="http://www.niif.hu">NIIF Institute</a> ©2015 Mészáros Mihály</span>
+            <span class="pull-right text-muted small"><a href="http://www.niif.hu">NIIF Institute</a> ©2015 Mihály Mészáros</span>
         </div>
     </footer>
     <div id="galleryModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -489,11 +705,9 @@ echo"                    <tr>
         		    A free federated STUN/TURN service for the Higher Education Research community.
         		</h5>
         		<p class="text-justify">
-        		    This is a single-page Bootstrap template with a sleek dark/grey color scheme, accent color and smooth scrolling.
-        		    There are vertical content sections with subtle animations that are activated when scrolled into view using the jQuery WOW plugin. There is also a gallery with modals
-        		    that work nicely to showcase your work portfolio. Other features include a contact form, email subscribe form, multi-column footer. Uses Questrial Google Font and Ionicons.
-        		</p>
-        		<p class="text-center"><a href="http://www.bootstrapzero.com">Download at BootstrapZero</a></p>
+        		    Lorem ipsum dolor sit amet, ei sed tale appetere, at quo nonumes dissentias. Decore praesent sed et, sit id summo invenire efficiendi. Et mei commodo sententiae, vis an aeterno complectitur, elitr audire pro in. Sit sumo mutat epicuri ea, minim integre his cu. Ne his ridens docendi, ut vis noster audire.
+         		</p>
+        		<p class="text-center"><a href="https://www.assembla.com/spaces/gn4-webrtc/">More on the project page</a></p>
         		<br>
         		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true"> OK </button>
         	</div>
@@ -513,7 +727,25 @@ echo"                    <tr>
         </div>
         </div>
     </div>
-    <!--scripts loaded here from cdn for performance -->
+    <div id="addServiceModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+        	<div class="modal-content">
+        		<div class="modal-body">
+        			<h2 class="text-center">Request api_key to a new Service</h2>
+        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+					<div class="col-lg-10 col-lg-offset-1">
+						<input type="hidden" name="form" value="addservice">
+						<label>Service URL : </label>
+						<input class="form-control" placeholder="Service URL" type="text" name="service_url" id="tokens-service-url">
+						<label></label>
+						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+					<div>
+				</form>
+	        	</div>
+        	</div>
+        </div>
+    </div>
+     <!--scripts loaded here from cdn for performance -->
     <script src="js/jquery_1.9.1.min.js"></script>
     <script src="js/bootstrap_3.3.4.min.js"></script>
     <script src="js/jquery.easing_1.3.min.js"></script>
@@ -531,6 +763,22 @@ echo"                    <tr>
                           $("#alertModal").modal('show');
                           $('#contact-form-message').val("");
                           
+                    }
+                });
+            });
+        });
+        $(function(){
+            $('#addservice-form').on('submit', function(e){
+                e.preventDefault();
+		var urls = '/';
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST', //or POST
+                    data: $('#addservice-form').serialize(),
+                    success: function(data){
+			$('#tokens-service-url').val("");
+			$('#tokens').load(urls + ' #token_table');
+			$('#addServiceModal').modal('toggle');
                     }
                 });
             });
