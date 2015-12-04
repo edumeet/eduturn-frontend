@@ -183,9 +183,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         </div>
         <div class="container">
             <div class="row col-md-8 col-md-offset-2 custyle">
+            <a href="#" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new realm</a>
             <table class="table">
             <thead>
-            <a href="#" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new realm</a>
                 <tr>
                     <th>Username</th>
                     <th>Realm</th>
@@ -204,7 +204,7 @@ echo"                    <tr>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["hmackey"]."</td>
                         <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
-                    </tr>";
+                    </tr>\n";
 }
 ?>
            </table>
@@ -221,14 +221,14 @@ echo"                    <tr>
                 </div>
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none;" class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
                         <h3>Secure</h3>
                         <p class="text-muted">Protection against dictionary attacks</p>
                     </div>
                 </div>
                 <div class="col-lg-4 col-md-4 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
                         <h3>Distributed</h3>
                         <p class="text-muted">The Service is distributed around Europe</p>
                     </div>
@@ -241,7 +241,7 @@ echo"                    <tr>
             <div class="row">
                 <div class="col-lg-12 text-center">
                     <h2 class="margin-top-0 text-primary">REST API</h2>
-                    <h3>Time Limited Long Term Credential Mechanism</h2>
+                    <h3>Time Limited Long Term Credential Mechanism</h3>
                     <hr class="primary">
                 </div>
             </div>
@@ -254,9 +254,9 @@ echo"                    <tr>
          </div>       
         <div class="container" id="tokens">
             <div class="row col-md-8 col-md-offset-2 custyle" id="token_table">
+            <a href="#addServiceModal" data-toggle="modal" data-target="#addServiceModal" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new service</a>
             <table class="table">
             <thead>
-            <a href="#addServiceModal" data-toggle="modal" data-target="#addServiceModal" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new service</a>
                 <tr>
                     <th>Token (api_key)</th>
                     <th>Service URL</th>
@@ -283,7 +283,6 @@ echo"                    <tr>
            </table>
             </div>
         </div>
-
          <div class="container">
             <div class="row">
                 <div class="col-lg-3 col-md-3 text-center">
@@ -295,21 +294,21 @@ echo"                    <tr>
                 </div>
                 <div class="col-lg-3 col-md-3 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none; "class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none;" class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
                         <h3>Secure</h3>
                         <p class="text-muted">Protection against many attacks</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-3 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-arrow-swap wow fadeIn" data-wow-delay=".3s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-arrow-swap wow fadeIn" data-wow-delay=".3s"></i>
                         <h3>Compatibility</h3>
                         <p class="text-muted">Client side backward compatibility</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-3 text-center">
                     <div class="feature">
-                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none; "class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
+                        <i style="visibility: hidden; animation-delay: 0.3s; animation-name: none;" class="icon-lg ion-android-cloud-outline wow fadeIn" data-wow-delay=".3s"></i>
                         <h3>Distributed</h3>
                         <p class="text-muted">Distributed around Europe</p>
                     </div>
@@ -739,7 +738,7 @@ echo"                    <tr>
 						<input class="form-control" placeholder="Service URL" type="text" name="service_url" id="tokens-service-url">
 						<label></label>
 						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
-					<div>
+					</div>
 				</form>
 	        	</div>
         	</div>
