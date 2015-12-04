@@ -12,83 +12,94 @@ $logout_url='https://brain.lab.vvc.niif.hu/';
 $db_rest = Db::Connection("coturn-rest");
 $db_ltc = Db::Connection("coturn-ltc");
 
-
+//create csfr token
+session_start();
+if (empty($_SESSION['token'])) {
+    if (function_exists('mcrypt_create_iv')) {
+        $_SESSION['token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
+    } else {
+        $_SESSION['token'] = bin2hex(openssl_random_pseudo_bytes(32));
+    }
+}
+$token = $_SESSION['token'];
 
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && !empty($_POST)) {
     // AJAX request
-    
-    switch($_POST["form"]){
-        case "feedback":
-            $mail = new PHPMailer;
-            //$mail->SMTPDebug = 3;                               // Enable verbose debug output
-            
-            $mail->isSMTP();                                      // Set mailer to use SMTP
-            $mail->Host = 'localhost';  // Specify main and backup SMTP servers
-        
-            $mail->CharSet = "UTF-8";
-            
-            $mail->setFrom('video-admin@niif.hu', 'Contact Webform');
-            // set recipient
-            $mail->addAddress('video-admin@niif.hu', 'Voice Video Collaboration');     // Add a recipient
-            
-            $mail->isHTML(true);                                  // Set email format to HTML
-            
-            $mail->Subject = 'Contact Form from brain.lab.vvc.niif.hu';
-            $mail->Body    = "Name: ".$_POST['Name']."<br>Email: ".$_POST['Email']."<br>Phone: ".$_POST['Phone']."<br>Message:".$_POST['Message'];
-            $mail->AltBody = "Name: ".$_POST['Name']."\nEmail: ".$_POST['Email']."\nPhone: ".$_POST['Phone']."\nMessage:".$_POST['Message'];
-            
-            if(!$mail->send()) {
-                http_response_code(500);
-                echo 'Message could not be sent.';
-                echo 'Mailer Error: ' . $mail->ErrorInfo;
-            } else {
-                echo 'Message has been sent';
-                // We delete the addresses of distributer and owner.
-                $mail->ClearAddresses();
+    if (!empty($_POST['token'])) {
+        if (hash_equals($_POST['token'], $_SESSION['token'])) { 
+            switch($_POST["form"]){
+                case "feedback":
+                    $mail = new PHPMailer;
+                    //$mail->SMTPDebug = 3;                               // Enable verbose debug output
+                    
+                    $mail->isSMTP();                                      // Set mailer to use SMTP
+                    $mail->Host = 'localhost';  // Specify main and backup SMTP servers
                 
-                $mail->addAddress($_POST['Email'], $_POST['Name']);     // Add a recipient
-                $mail->Subject = 'Your feedback is highly Appreciated!';
-                $mail->Body = "Many thanks for Your feedback, we will contact you soon..<br><br>Lab Team";
-            	$mail->AltBody = "Many thanks for Your feedback, we will contact you soon..\n\nLab Team";
-                
-                if($mail->Send()){  }else{ $error = "Error sending feedback message to the user! <br/>"; }
+                    $mail->CharSet = "UTF-8";
+                    
+                    $mail->setFrom('video-admin@niif.hu', 'Contact Webform');
+                    // set recipient
+                    $mail->addAddress('video-admin@niif.hu', 'Voice Video Collaboration');     // Add a recipient
+                    
+                    $mail->isHTML(true);                                  // Set email format to HTML
+                    
+                    $mail->Subject = 'Contact Form from brain.lab.vvc.niif.hu';
+                    $mail->Body    = "Name: ".$_POST['Name']."<br>Email: ".$_POST['Email']."<br>Phone: ".$_POST['Phone']."<br>Message:".$_POST['Message'];
+                    $mail->AltBody = "Name: ".$_POST['Name']."\nEmail: ".$_POST['Email']."\nPhone: ".$_POST['Phone']."\nMessage:".$_POST['Message'];
+                    
+                    if(!$mail->send()) {
+                        http_response_code(500);
+                        echo 'Message could not be sent.';
+                        echo 'Mailer Error: ' . $mail->ErrorInfo;
+                    } else {
+                        echo 'Message has been sent';
+                        // We delete the addresses of distributer and owner.
+                        $mail->ClearAddresses();
+                        
+                        $mail->addAddress($_POST['Email'], $_POST['Name']);     // Add a recipient
+                        $mail->Subject = 'Your feedback is highly Appreciated!';
+                        $mail->Body = "Many thanks for Your feedback, we will contact you soon..<br><br>Lab Team";
+                    	$mail->AltBody = "Many thanks for Your feedback, we will contact you soon..\n\nLab Team";
+                        
+                        if($mail->Send()){  }else{ $error = "Error sending feedback message to the user! <br/>"; }
+                    }
+                    break;
+                case "renewpassword":
+                    $generator = new ComputerPasswordGenerator();
+                    
+                    $generator
+                      ->setUppercase()
+                      ->setLowercase()
+                      ->setNumbers()
+                      ->setSymbols(false)
+                      ->setLength(16);
+                    
+                    $password = $generator->generatePasswords();
+                    break;
+                case "addservice":
+                    $generator = new ComputerPasswordGenerator();
+                    
+                    $generator
+                      ->setUppercase(false)
+                      ->setLowercase()
+                      ->setNumbers()
+                      ->setSymbols(false)
+                      ->setLength(32);
+                    $token = $generator->generatePasswords();
+        	    
+        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values('".$attributes["eduPersonPrincipalName"][0]."','".$attributes["mail"][0]."','".$attributes["displayName"][0]."','".$token[0]."','".$_POST['service_url']."');";
+                    $sth = $db_rest->prepare($query);
+                    if($sth->execute()){
+        		//success
+        	    } else {
+        		http_response_code(500);
+        		echo $query;
+        		echo 'New service could not be inserted.';
+        	    }
+                    break;
             }
-            break;
-        case "renewpassword":
-            $generator = new ComputerPasswordGenerator();
-            
-            $generator
-              ->setUppercase()
-              ->setLowercase()
-              ->setNumbers()
-              ->setSymbols(false)
-              ->setLength(16);
-            
-            $password = $generator->generatePasswords();
-            break;
-        case "addservice":
-            $generator = new ComputerPasswordGenerator();
-            
-            $generator
-              ->setUppercase(false)
-              ->setLowercase()
-              ->setNumbers()
-              ->setSymbols(false)
-              ->setLength(32);
-            $token = $generator->generatePasswords();
-	    
-	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values('".$attributes["eduPersonPrincipalName"][0]."','".$attributes["mail"][0]."','".$attributes["displayName"][0]."','".$token[0]."','".$_POST['service_url']."');";
-            $sth = $db_rest->prepare($query);
-            if($sth->execute()){
-		//success
-	    } else {
-		http_response_code(500);
-		echo $query;
-		echo 'New service could not be inserted.';
-	    }
-            break;
-    }
- 
+        }
+    } 
 } else {
 ?>
 <!DOCTYPE html>
@@ -611,6 +622,7 @@ echo"                    <tr>
                 </div>
                 <div class="col-lg-10 col-lg-offset-1 text-center">
                     <form class="contact-form row" id="contact-form" method="post">
+			<input type="hidden" name="token" value="<?php echo $token; ?>" />		
                         <input type="hidden" name="form" value="feedback">
                         <div class="col-md-4">
                             <label></label>
@@ -662,6 +674,7 @@ echo"                    <tr>
                     <h4>Stay Posted</h4>
                     <form>
                         <div class="form-group">
+                          <input type="hidden" name="token" value="<?php echo $token; ?>" />
                           <input class="form-control" title="No spam, we promise!" placeholder="Tell us your email" type="text">
                         </div>
                         <div class="form-group">
@@ -733,6 +746,7 @@ echo"                    <tr>
         			<h2 class="text-center">Request api_key to a new Service</h2>
         	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
 					<div class="col-lg-10 col-lg-offset-1">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="addservice">
 						<label>Service URL : </label>
 						<input class="form-control" placeholder="Service URL" type="text" name="service_url" id="tokens-service-url">
