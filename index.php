@@ -12,6 +12,9 @@ $logout_url='https://brain.lab.vvc.niif.hu/';
 $db_rest = Db::Connection("coturn-rest");
 $db_ltc = Db::Connection("coturn-ltc");
 
+// Default realm
+const default_realm='lab.vvc.niif.hu';
+
 //create csfr token
 $a = session_id();
 if(empty($a))session_start();
@@ -24,6 +27,25 @@ if (empty($_SESSION['token'])) {
 }
 $token = $_SESSION['token'];
 
+function mkpasswd($length) {
+    $generator = new ComputerPasswordGenerator();
+    
+    $generator
+      ->setUppercase()
+      ->setLowercase()
+      ->setNumbers()
+      ->setSymbols(false)
+      ->setLength($length);
+    
+    $password = $generator->generatePasswords();
+    return $password[0];
+ 
+};
+
+function huston_we_have_problem($problem){
+    http_response_code(500);
+    echo $problem;
+}
 if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest' && !empty($_POST)) {
     // AJAX request
     if (!empty($_POST['token'])) {
@@ -65,45 +87,62 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                         if($mail->Send()){  }else{ $error = "Error sending feedback message to the user! <br/>"; }
                     }
                     break;
-                case "renewpassword":
-                    $generator = new ComputerPasswordGenerator();
-                    
-                    $generator
-                      ->setUppercase()
-                      ->setLowercase()
-                      ->setNumbers()
-                      ->setSymbols(false)
-                      ->setLength(16);
-                    
-                    $password = $generator->generatePasswords();
+                case "adduser":
+        	    $query="INSERT INTO turnuser_lt (eppn,email,displayname,name,realm,hmackey) values(:eppn,:mail,:displayname,:username,:realm,:HA1)";
+                    $sth = $db_ltc->prepare($query);
+                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':username', $_POST['username'], PDO::PARAM_STR);
+                    $sth->bindValue(':realm', $_POST['password'], PDO::PARAM_STR);
+                    $sth->bindValue(':HA1', md5($_POST['username'].':'.$_POST['realm'].':'.$_POST['password']), PDO::PARAM_STR);
+                    if($sth->execute()){
+        		//success
+        	    } else {
+        		huston_we_have_a_problem('New user could not be inserted.');
+        	    }
                     break;
                 case "addservice":
-                    $generator = new ComputerPasswordGenerator();
-                    
-                    $generator
-                      ->setUppercase(false)
-                      ->setLowercase()
-                      ->setNumbers()
-                      ->setSymbols(false)
-                      ->setLength(32);
-                    $token = $generator->generatePasswords();
+                    $token = mkpasswd(32);
         	    
         	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token,:service_url)";
                     $sth = $db_rest->prepare($query);
                     $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
                     $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':token', $token[0], PDO::PARAM_STR);
+                    $sth->bindValue(':token', $token, PDO::PARAM_STR);
                     $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
                     if($sth->execute()){
         		//success
         	    } else {
-        		http_response_code(500);
-        		echo $query;
-        		echo 'New service could not be inserted.';
+        		huston_we_have_a_problem('New token could not be inserted.');
         	    }
                     break;
-            }
+                case "del":
+                    $table="";
+                    switch ($_POST["table"]) {
+                        case "turnusers_lt":
+                            $table="turnusers_lt";
+                            break;
+                        case "token":
+                            $table="token";
+                            break;
+                        default:
+        		huston_we_have_a_problem('Invalid table parameter received!');
+                    }
+
+        	    $query="DELETE from ".$table." where eppn=:eppn and email=:mail and id=:id";
+                    $sth = $db_rest->prepare($query);
+                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':id', $_POST['id'], PDO::PARAM_STR);
+                    if($sth->execute()){
+        		//success
+        	    } else {
+        		huston_we_have_a_problem('Cannot delete from '.$table.'table row id:'.$_POST['id'].' !');
+        	    }
+                    break;
+             }
         }
     } 
 } else {
@@ -200,8 +239,17 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         </div>
         <div class="container">
             <div class="row col-md-8 col-md-offset-2 custyle">
-            <a href="#" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new realm</a>
-            <table class="table">
+<?php       
+$query="SELECT * FROM turnusers_lt where eppn=:eppn";
+$sth = $db_ltc->prepare($query);
+$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+$sth->execute();
+$result = $sth->fetchAll(PDO::FETCH_ASSOC);
+if (empty($result)){
+    echo '            <a href="#addUserModal" data-toggle="modal" data-target="#addUserModal" class="btn btn-primary btn-xs pull-right" id="addUserButton"><b>+</b> Add new User</a>'; 
+}
+?>
+           <table class="table">
             <thead>
                 <tr>
                     <th>Username</th>
@@ -211,17 +259,15 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 </tr>
             </thead>
 <?php       
-$query="SELECT * FROM turnusers_lt where eppn=:eppn";
-$sth = $db_ltc->prepare($query);
-$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-$sth->execute();
-$result = $sth->fetchAll(PDO::FETCH_ASSOC);
 foreach ($result as $row => $columns) {
 echo"                    <tr>
                         <td>".$columns["name"]."</td>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["hmackey"]."</td>
-                        <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
+                        <td class=\"text-center\">
+                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_ltc\" class=\"btn btn-primary btn-xsi\"><span class=\"ion-android-refresh\"></span> Renew</a>
+                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_ltc\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
+                        </td>
                     </tr>\n";
 }
 ?>
@@ -284,7 +330,7 @@ echo"                    <tr>
                 </tr>
             </thead>
 <?php       
-$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn";
+$query="SELECT id,token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn";
 $sth = $db_rest->prepare($query);
 $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth->execute();
@@ -295,7 +341,9 @@ echo"                    <tr>
                         <td>".$columns["service_url"]."</td>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["expire"]."</td>
-                        <td class=\"text-center\"><a class='btn btn-primary btn-xs' href=\"#\"><span class=\"ion-android-refresh\"></span> Renew</a> <a href=\"#\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
+                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xsi\"><span class=\"ion-android-refresh\"></span> Renew</a>
+                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
+                       </td>
                     </tr>";
 }
 ?>
@@ -766,7 +814,73 @@ echo"                    <tr>
         	</div>
         </div>
     </div>
-     <!--scripts loaded here from cdn for performance -->
+    <div id="addUserModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+        	<div class="modal-content">
+        		<div class="modal-body">
+        			<h2 class="text-center">Please notice your username, password!</h2>
+        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+					<div class="col-lg-10 col-lg-offset-1">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
+						<input type="hidden" name="form" value="adduser">
+						<label>Service URL : </label>
+						<input class="form-control" type="text" name="username" value="<?php echo str_replace("@","-",$attributes["mail"][0]); ?>" readonly>
+						<input class="form-control" type="text" name="password" value="<?php echo mkpasswd(32); ?>" readonly>
+						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
+						<label></label>
+						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+					</div>
+				</form>
+	        	</div>
+        	</div>
+        </div>
+    </div>
+    <div id="delModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+        	<div class="modal-body">
+        		<h2 class="text-center">Are You sure!</h2>
+        		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
+        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+					<div class="col-lg-10 col-lg-offset-1">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
+						<input type="hidden" name="form" value="del">
+						<input type="hidden" name="row_id" id="row_id">
+						<input type="hidden" name="table" id="table">
+						<label></label>
+						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
+					</div>
+				</form>
+        		<br>
+        		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">OK <i class="ion-android-close"></i></button>
+        	</div>
+        </div>
+        </div>
+    </div>
+    <div id="renewModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-sm">
+        <div class="modal-content">
+        	<div class="modal-body">
+        		<h2 class="text-center">Renew your credentials!</h2>
+        		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
+        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+					<div class="col-lg-10 col-lg-offset-1">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
+						<input type="hidden" name="form" value="renew">
+						<input type="hidden" name="row_id" id="row_id">
+						<input type="hidden" name="table" id="table">
+						<label></label>
+						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
+					</div>
+				</form>
+        		<br>
+        		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">OK <i class="ion-android-close"></i></button>
+        	</div>
+        </div>
+        </div>
+    </div>
+
+    <!--scripts loaded here from cdn for performance -->
     <script src="js/jquery_1.9.1.min.js"></script>
     <script src="js/bootstrap_3.3.4.min.js"></script>
     <script src="js/jquery.easing_1.3.min.js"></script>
@@ -803,6 +917,22 @@ echo"                    <tr>
                     }
                 });
             });
+        });
+        $(document).ready(function() {
+          $('a[data-toggle=modal], button[data-toggle=modal]').click(function () {
+            // id
+            var data_id = '';
+            if (typeof $(this).data('id') !== 'undefined') {
+              data_id = $(this).data('id');
+            }
+            $('#row_id').val(data_id);
+            // table
+            var data_table = '';
+            if (typeof $(this).data('table') !== 'undefined') {
+              data_table = $(this).data('table');
+            }
+            $('#table').val(data_table);
+          })
         });
     </script>
   </body>
