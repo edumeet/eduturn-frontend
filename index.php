@@ -13,7 +13,8 @@ $db_rest = Db::Connection("coturn-rest");
 $db_ltc = Db::Connection("coturn-ltc");
 
 //create csfr token
-session_start();
+$a = session_id();
+if(empty($a))session_start();
 if (empty($_SESSION['token'])) {
     if (function_exists('mcrypt_create_iv')) {
         $_SESSION['token'] = bin2hex(mcrypt_create_iv(32, MCRYPT_DEV_URANDOM));
