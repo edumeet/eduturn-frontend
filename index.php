@@ -87,7 +87,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                       ->setLength(32);
                     $token = $generator->generatePasswords();
         	    
-        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token[0],:service_url)";
+        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token,:service_url)";
                     $sth = $db_rest->prepare($query);
                     $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
@@ -210,9 +210,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 </tr>
             </thead>
 <?php       
-$query="SELECT * FROM turnusers_lt where eppn=:eppn'";
-$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+$query="SELECT * FROM turnusers_lt where eppn=:eppn";
 $sth = $db_ltc->prepare($query);
+$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
 foreach ($result as $row => $columns) {
@@ -283,9 +283,9 @@ echo"                    <tr>
                 </tr>
             </thead>
 <?php       
-$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn'";
-$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn";
 $sth = $db_rest->prepare($query);
+$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
 foreach ($result as $row => $columns) {
