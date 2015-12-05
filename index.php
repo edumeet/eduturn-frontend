@@ -87,8 +87,13 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                       ->setLength(32);
                     $token = $generator->generatePasswords();
         	    
-        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values('".$attributes["eduPersonPrincipalName"][0]."','".$attributes["mail"][0]."','".$attributes["displayName"][0]."','".$token[0]."','".$_POST['service_url']."');";
+        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token[0],:service_url)";
                     $sth = $db_rest->prepare($query);
+                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':token', $token[0], PDO::PARAM_STR);
+                    $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
                     if($sth->execute()){
         		//success
         	    } else {
@@ -205,7 +210,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 </tr>
             </thead>
 <?php       
-$query="SELECT * FROM turnusers_lt where eppn='".$attributes["eduPersonPrincipalName"][0]."'";
+$query="SELECT * FROM turnusers_lt where eppn=:eppn'";
+$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth = $db_ltc->prepare($query);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
@@ -277,7 +283,8 @@ echo"                    <tr>
                 </tr>
             </thead>
 <?php       
-$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn='".$attributes["eduPersonPrincipalName"][0]."'";
+$query="SELECT token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn'";
+$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth = $db_rest->prepare($query);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
