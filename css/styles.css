@@ -344,6 +344,12 @@ footer {
     box-shadow: none;
 }
 
+.form-control[disabled],
+.form-control[readonly],
+fieldset[disabled] .form-control {
+  background-color: #36333d;
+}
+
 textarea {
     resize: none;
 }

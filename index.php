@@ -42,7 +42,7 @@ function mkpasswd($length) {
  
 };
 
-function huston_we_have_problem($problem){
+function huston_we_have_a_problem($problem){
     http_response_code(500);
     echo $problem;
 }
@@ -88,7 +88,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     }
                     break;
                 case "adduser":
-        	    $query="INSERT INTO turnuser_lt (eppn,email,displayname,name,realm,hmackey) values(:eppn,:mail,:displayname,:username,:realm,:HA1)";
+        	    $query="INSERT INTO turnusers_lt (eppn,email,displayname,name,realm,hmackey) values(:eppn,:mail,:displayname,:username,:realm,:HA1)";
                     $sth = $db_ltc->prepare($query);
                     $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
@@ -123,20 +123,23 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     switch ($_POST["table"]) {
                         case "turnusers_lt":
                             $table="turnusers_lt";
+                            $db=$db_ltc;
                             break;
                         case "token":
                             $table="token";
+                            $db=$db_rest;
                             break;
                         default:
         		huston_we_have_a_problem('Invalid table parameter received!');
                     }
 
         	    $query="DELETE from ".$table." where eppn=:eppn and email=:mail and id=:id";
-                    $sth = $db_rest->prepare($query);
+                    $sth = $db->prepare($query);
                     $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':id', $_POST['id'], PDO::PARAM_STR);
+                    $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
                     if($sth->execute()){
+                        echo $table;
         		//success
         	    } else {
         		huston_we_have_a_problem('Cannot delete from '.$table.'table row id:'.$_POST['id'].' !');
@@ -237,8 +240,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="row col-md-8 col-md-offset-2 custyle">
+        <div class="container" id="passwords">
+            <div class="row col-md-8 col-md-offset-2 custyle" id="password_table">
 <?php       
 $query="SELECT * FROM turnusers_lt where eppn=:eppn";
 $sth = $db_ltc->prepare($query);
@@ -264,10 +267,7 @@ echo"                    <tr>
                         <td>".$columns["name"]."</td>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["hmackey"]."</td>
-                        <td class=\"text-center\">
-                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_ltc\" class=\"btn btn-primary btn-xsi\"><span class=\"ion-android-refresh\"></span> Renew</a>
-                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_ltc\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
-                        </td>
+                        <td class=\"text-center\"><a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_lt\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a><a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_lt\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
                     </tr>\n";
 }
 ?>
@@ -341,8 +341,8 @@ echo"                    <tr>
                         <td>".$columns["service_url"]."</td>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["expire"]."</td>
-                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xsi\"><span class=\"ion-android-refresh\"></span> Renew</a>
-                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
+                        <td class=\"text-center\">
+                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a><a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
                        </td>
                     </tr>";
 }
@@ -819,17 +819,30 @@ echo"                    <tr>
         	<div class="modal-content">
         		<div class="modal-body">
         			<h2 class="text-center">Please notice your username, password!</h2>
-        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
-					<div class="col-lg-10 col-lg-offset-1">
+                                <hr/>
+        	        	<form role="form" class="form-horizontal adduser-form" id="adduser-form" method="post">
+					<div class="form-group">
                                                 <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="adduser">
-						<label>Service URL : </label>
-						<input class="form-control" type="text" name="username" value="<?php echo str_replace("@","-",$attributes["mail"][0]); ?>" readonly>
-						<input class="form-control" type="text" name="password" value="<?php echo mkpasswd(32); ?>" readonly>
-						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
-						<label></label>
-						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+						<label class="control-label col-sm-2">Username</label>
+                                                <div class="col-sm-10">
+						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attributes["mail"][0]); ?>" readonly>
+                                                </div>
 					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-2">Password</label>
+                                                <div class="col-sm-10">
+						<input class="form-control" type="text" name="password" value="<?php echo mkpasswd(32); ?>" readonly>
+                                                </div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-2">Realm </label>
+                                                <div class="col-sm-10">
+						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
+                                                </div>
+                                                <br>
+					</div>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Password Credential<i class="ion-android-arrow-forward"></i></button>
 				</form>
 	        	</div>
         	</div>
@@ -839,9 +852,9 @@ echo"                    <tr>
         <div class="modal-dialog modal-sm">
         <div class="modal-content">
         	<div class="modal-body">
-        		<h2 class="text-center">Are You sure!</h2>
-        		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
-        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+        		<h2 class="text-center">Are You sure ?!</h2>
+        		<p class="text-center">You clicked on the delete button. This is your last chance to cancel...</p>
+        	        	<form class="del-form row text-center" id="del-form" method="post">
 					<div class="col-lg-10 col-lg-offset-1">
                                                 <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="del">
@@ -851,8 +864,6 @@ echo"                    <tr>
 						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
 					</div>
 				</form>
-        		<br>
-        		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">OK <i class="ion-android-close"></i></button>
         	</div>
         </div>
         </div>
@@ -861,9 +872,9 @@ echo"                    <tr>
         <div class="modal-dialog modal-sm">
         <div class="modal-content">
         	<div class="modal-body">
-        		<h2 class="text-center">Renew your credentials!</h2>
+        		<h2 class="text-center">Renew credential!</h2>
         		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
-        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
+        	        	<form class="renew-form row text-center" id="renew-form" method="post">
 					<div class="col-lg-10 col-lg-offset-1">
                                                 <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="renew">
@@ -873,8 +884,6 @@ echo"                    <tr>
 						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
 					</div>
 				</form>
-        		<br>
-        		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">OK <i class="ion-android-close"></i></button>
         	</div>
         </div>
         </div>
@@ -887,6 +896,27 @@ echo"                    <tr>
     <script src="js/wow_1.1.2.js"></script>
     <script src="js/scripts.js"></script>
     <script>
+        $(function(){
+            $('#del-form').on('submit', function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST', //or POST
+                    data: $('#del-form').serialize(),
+                    success: function(data){
+                          switch(data) {
+                              case 'turnusers_lt':
+			          $('#passwords').load('/ #password_table');
+                                  break;
+                              case 'token':
+			          $('#tokens').load('/ #token_table');
+                                  break;
+                          }
+                          $("#delModal").modal('toggle');
+                    }
+                });
+            });
+        });
         $(function(){
             $('#contact-form').on('submit', function(e){
                 e.preventDefault();
@@ -905,21 +935,33 @@ echo"                    <tr>
         $(function(){
             $('#addservice-form').on('submit', function(e){
                 e.preventDefault();
-		var urls = '/';
                 $.ajax({
                     url: '/', //this is the submit URL
                     type: 'POST', //or POST
                     data: $('#addservice-form').serialize(),
                     success: function(data){
 			$('#tokens-service-url').val("");
-			$('#tokens').load(urls + ' #token_table');
+			$('#tokens').load('/ #token_table');
 			$('#addServiceModal').modal('toggle');
                     }
                 });
             });
         });
-        $(document).ready(function() {
-          $('a[data-toggle=modal], button[data-toggle=modal]').click(function () {
+        $(function(){
+            $('#adduser-form').on('submit', function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST', //or POST
+                    data: $('#adduser-form').serialize(),
+                    success: function(data){
+			$('#passwords').load('/ #password_table');
+			$('#addUserModal').modal('toggle');
+                    }
+                });
+            });
+        });
+        $(document).on('click','a[data-toggle=modal], button[data-toggle=modal]', function () {
             // id
             var data_id = '';
             if (typeof $(this).data('id') !== 'undefined') {
@@ -932,8 +974,7 @@ echo"                    <tr>
               data_table = $(this).data('table');
             }
             $('#table').val(data_table);
-          })
-        });
+         });
     </script>
   </body>
 </html>
