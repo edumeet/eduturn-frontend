@@ -907,7 +907,7 @@ echo"                    <tr>
                                                 </div>
                                                 <br>
 					</div>
-					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Renew Password Credential<i class="ion-android-arrow-forward"></i></button>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Renew Password Credential <i class="ion-android-arrow-forward"></i></button>
 				</form>
 	        	</div>
         	</div>
@@ -942,7 +942,7 @@ echo"                    <tr>
                                                 </div>
                                                 <br>
 					</div>
-					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Password Credential<i class="ion-android-arrow-forward"></i></button>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Password Credential <i class="ion-android-arrow-forward"></i></button>
 				</form>
 	        	</div>
         	</div>
