@@ -94,7 +94,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
                     $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':username', $_POST['username'], PDO::PARAM_STR);
-                    $sth->bindValue(':realm', $_POST['password'], PDO::PARAM_STR);
+                    $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
                     $sth->bindValue(':HA1', md5($_POST['username'].':'.$_POST['realm'].':'.$_POST['password']), PDO::PARAM_STR);
                     if($sth->execute()){
         		//success
@@ -102,7 +102,23 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         		huston_we_have_a_problem('New user could not be inserted.');
         	    }
                     break;
-                case "addservice":
+                case "updateuser":
+        	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id";
+                    $sth = $db_ltc->prepare($query);
+                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':username', $_POST['username'], PDO::PARAM_STR);
+                    $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
+                    $sth->bindValue(':HA1', md5($_POST['username'].':'.$_POST['realm'].':'.$_POST['password']), PDO::PARAM_STR);
+                    $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
+                    if($sth->execute()){
+        		//success
+        	    } else {
+        		huston_we_have_a_problem('New user could not be inserted.');
+        	    }
+                    break;
+                 case "addservice":
                     $token = mkpasswd(32);
         	    
         	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token,:service_url)";
@@ -118,7 +134,24 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         		huston_we_have_a_problem('New token could not be inserted.');
         	    }
                     break;
-                case "del":
+                 case "updateservice":
+                    $token = mkpasswd(32);
+        	    
+        	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url WHERE eppn=:eppn AND id=:id";
+                    $sth = $db_rest->prepare($query);
+                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':token', $token, PDO::PARAM_STR);
+                    $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
+                    $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
+                    if($sth->execute()){
+        		//success
+        	    } else {
+        		huston_we_have_a_problem('New token could not be inserted.');
+        	    }
+                    break;
+                 case "del":
                     $table="";
                     switch ($_POST["table"]) {
                         case "turnusers_lt":
@@ -267,7 +300,10 @@ echo"                    <tr>
                         <td>".$columns["name"]."</td>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["hmackey"]."</td>
-                        <td class=\"text-center\"><a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_lt\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a><a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_lt\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a></td>
+                        <td class=\"text-center\">
+                            <a href=\"#renewUserModal\" data-toggle=\"modal\" data-target=\"#renewUserModal\" data-id=\"".$columns['id']."\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a>
+                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"turnusers_lt\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
+                        </td>
                     </tr>\n";
 }
 ?>
@@ -312,10 +348,10 @@ echo"                    <tr>
         </div>
         <div class="container text-center">
             <div class="call-to-action">
-                <h2 style="visibility: hidden; animation-name: none;" class="text-primary">Get Started</h2>
                 <a href="/restapi" target="ext" class="btn btn-default btn-lg wow flipInX">The REST API Documentation</a>
             </div>
-         </div>       
+        </div>
+        <hr/>       
         <div class="container" id="tokens">
             <div class="row col-md-8 col-md-offset-2 custyle" id="token_table">
             <a href="#addServiceModal" data-toggle="modal" data-target="#addServiceModal" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new service</a>
@@ -342,7 +378,8 @@ echo"                    <tr>
                         <td>".$columns["realm"]."</td>
                         <td>".$columns["expire"]."</td>
                         <td class=\"text-center\">
-                            <a href=\"#renewModal\" data-toggle=\"modal\" data-target=\"#renewModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a><a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
+                            <a href=\"#renewServiceModal\" data-toggle=\"modal\" data-target=\"#renewServiceModal\" data-id=\"".$columns['id']."\" data-service_url=\"".$columns['service_url']."\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-refresh\"></span> Renew</a>
+                            <a href=\"#delModal\" data-toggle=\"modal\" data-target=\"#delModal\" data-id=\"".$columns['id']."\" data-table=\"token\" class=\"btn btn-primary btn-xs\"><span class=\"ion-android-delete\"></span> Del</a>
                        </td>
                     </tr>";
 }
@@ -800,15 +837,77 @@ echo"                    <tr>
         	<div class="modal-content">
         		<div class="modal-body">
         			<h2 class="text-center">Request api_key to a new Service</h2>
-        	        	<form class="addservice-form row text-center" id="addservice-form" method="post">
-					<div class="col-lg-10 col-lg-offset-1">
+        	        	<form class="addservice-form form" id="addservice-form" method="post">
+					<div class="form-group">
                                                 <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="addservice">
-						<label>Service URL : </label>
+						<label class="control-label">Service URL</label>
 						<input class="form-control" placeholder="Service URL" type="text" name="service_url" id="tokens-service-url">
-						<label></label>
-						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+                                        </div>
+					<div class="form-group">
+						<label class="control-label">Realm</label>
+						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
 					</div>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Request Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+				</form>
+	        	</div>
+        	</div>
+        </div>
+    </div>
+    <div id="renewServiceModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+        	<div class="modal-content">
+        		<div class="modal-body">
+        			<h2 class="text-center">Request api_key to a new Service</h2>
+        	        	<form class="renewservice-form form" id="renewservice-form" method="post">
+					<div class="form-group">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
+						<input type="hidden" name="form" value="updateservice">
+						<input type="hidden" name="row_id" class="row_id">
+						<label class="control-label">Service URL</label>
+						<input class="form-control service_url" placeholder="Service URL" type="text" name="service_url">
+                                        </div>
+					<div class="form-group">
+						<label class="control-label">Realm</label>
+						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
+					</div>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Renew Token (api_key) <i class="ion-android-arrow-forward"></i></button>
+				</form>
+	        	</div>
+        	</div>
+        </div>
+    </div>
+    <div id="renewUserModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+        <div class="modal-dialog modal-md">
+        	<div class="modal-content">
+        		<div class="modal-body">
+        			<h2 class="text-center">Please keep and notice!</h2>
+                                <h3 class="text-center">This is your new Username Password and Realm!</h2>
+                                <hr/>
+        	        	<form role="form" class="form-horizontal renewuser-form" id="renewuser-form" method="post">
+					<div class="form-group">
+                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
+						<input type="hidden" name="form" value="updateuser">
+						<input type="hidden" name="row_id" class="row_id">
+						<label class="control-label col-sm-2">Username</label>
+                                                <div class="col-sm-10">
+						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attributes["mail"][0]); ?>" readonly>
+                                                </div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-2">Password</label>
+                                                <div class="col-sm-10">
+						<input class="form-control" type="text" name="password" value="<?php echo mkpasswd(32); ?>" readonly>
+                                                </div>
+					</div>
+					<div class="form-group">
+						<label class="control-label col-sm-2">Realm</label>
+                                                <div class="col-sm-10">
+						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
+                                                </div>
+                                                <br>
+					</div>
+					<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">Renew Password Credential<i class="ion-android-arrow-forward"></i></button>
 				</form>
 	        	</div>
         	</div>
@@ -818,7 +917,8 @@ echo"                    <tr>
         <div class="modal-dialog modal-md">
         	<div class="modal-content">
         		<div class="modal-body">
-        			<h2 class="text-center">Please notice your username, password!</h2>
+        			<h2 class="text-center">Please keep and notice!</h2>
+                                <h3 class="text-center">This is your new Username Password and Realm!</h2>
                                 <hr/>
         	        	<form role="form" class="form-horizontal adduser-form" id="adduser-form" method="post">
 					<div class="form-group">
@@ -836,7 +936,7 @@ echo"                    <tr>
                                                 </div>
 					</div>
 					<div class="form-group">
-						<label class="control-label col-sm-2">Realm </label>
+						<label class="control-label col-sm-2">Realm</label>
                                                 <div class="col-sm-10">
 						<input class="form-control" type="text" name="realm" value="<?php echo default_realm; ?>" readonly>
                                                 </div>
@@ -848,7 +948,7 @@ echo"                    <tr>
         	</div>
         </div>
     </div>
-    <div id="delModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+   <div id="delModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
         <div class="modal-dialog modal-sm">
         <div class="modal-content">
         	<div class="modal-body">
@@ -858,27 +958,7 @@ echo"                    <tr>
 					<div class="col-lg-10 col-lg-offset-1">
                                                 <input type="hidden" name="token" value="<?php echo $token; ?>" />
 						<input type="hidden" name="form" value="del">
-						<input type="hidden" name="row_id" id="row_id">
-						<input type="hidden" name="table" id="table">
-						<label></label>
-						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
-					</div>
-				</form>
-        	</div>
-        </div>
-        </div>
-    </div>
-    <div id="renewModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
-        <div class="modal-dialog modal-sm">
-        <div class="modal-content">
-        	<div class="modal-body">
-        		<h2 class="text-center">Renew credential!</h2>
-        		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
-        	        	<form class="renew-form row text-center" id="renew-form" method="post">
-					<div class="col-lg-10 col-lg-offset-1">
-                                                <input type="hidden" name="token" value="<?php echo $token; ?>" />
-						<input type="hidden" name="form" value="renew">
-						<input type="hidden" name="row_id" id="row_id">
+						<input type="hidden" name="row_id" class="row_id">
 						<input type="hidden" name="table" id="table">
 						<label></label>
 						<button type="submit" class="btn btn-primary btn-lg center-block" aria-hidden="true">I am  Sure <i class="ion-android-arrow-forward"></i></button>
@@ -901,7 +981,7 @@ echo"                    <tr>
                 e.preventDefault();
                 $.ajax({
                     url: '/', //this is the submit URL
-                    type: 'POST', //or POST
+                    type: 'POST',
                     data: $('#del-form').serialize(),
                     success: function(data){
                           switch(data) {
@@ -922,7 +1002,7 @@ echo"                    <tr>
                 e.preventDefault();
                 $.ajax({
                     url: '/', //this is the submit URL
-                    type: 'POST', //or POST
+                    type: 'POST',
                     data: $('#contact-form').serialize(),
                     success: function(data){
                           $("#alertModal").modal('show');
@@ -937,7 +1017,7 @@ echo"                    <tr>
                 e.preventDefault();
                 $.ajax({
                     url: '/', //this is the submit URL
-                    type: 'POST', //or POST
+                    type: 'POST',
                     data: $('#addservice-form').serialize(),
                     success: function(data){
 			$('#tokens-service-url').val("");
@@ -948,11 +1028,39 @@ echo"                    <tr>
             });
         });
         $(function(){
+            $('#renewuser-form').on('submit', function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST',
+                    data: $('#renewuser-form').serialize(),
+                    success: function(data){
+			$('#passwords').load('/ #password_table');
+			$('#renewUserModal').modal('toggle');
+                    }
+                });
+            });
+        });
+        $(function(){
+            $('#renewservice-form').on('submit', function(e){
+                e.preventDefault();
+                $.ajax({
+                    url: '/', //this is the submit URL
+                    type: 'POST',
+                    data: $('#renewservice-form').serialize(),
+                    success: function(data){
+			$('#tokens').load('/ #token_table');
+			$('#renewServiceModal').modal('toggle');
+                    }
+                });
+            });
+        });
+        $(function(){
             $('#adduser-form').on('submit', function(e){
                 e.preventDefault();
                 $.ajax({
                     url: '/', //this is the submit URL
-                    type: 'POST', //or POST
+                    type: 'POST',
                     data: $('#adduser-form').serialize(),
                     success: function(data){
 			$('#passwords').load('/ #password_table');
@@ -967,14 +1075,19 @@ echo"                    <tr>
             if (typeof $(this).data('id') !== 'undefined') {
               data_id = $(this).data('id');
             }
-            $('#row_id').val(data_id);
+            $('.row_id').val(data_id);
             // table
             var data_table = '';
             if (typeof $(this).data('table') !== 'undefined') {
               data_table = $(this).data('table');
             }
             $('#table').val(data_table);
-         });
+            var service_url = '';
+            if (typeof $(this).data('service_url') !== 'undefined') {
+              service_url = $(this).data('service_url');
+            }
+            $('.service_url').val(service_url);
+          });
     </script>
   </body>
 </html>
