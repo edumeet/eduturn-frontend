@@ -827,7 +827,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
         		<p class="text-justify">
 There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g. Firewalls/Packet Filters, NATs, , Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents RFC5245 that's are basing on STUN/TURN servers. ICE is an IETF standard, that makes possible RTC through NAT and Firewalls and help also in IPv6 smooth transition. It is widely deployed and used, for example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
          		</p>
-        		<p class="text-center"><a href="https://www.assembla.com/spaces/gn4-webrtc/">More on the project page</a></p>
+        		<p class="text-center"><a href="#last" onclick="$('#aboutModal').modal('hide');">In case of any question please don't hesitate to contact us.</a></p>
         		<br>
         		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true"> OK </button>
         	</div>
