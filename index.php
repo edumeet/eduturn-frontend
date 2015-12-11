@@ -270,6 +270,10 @@ With the IPv4 address exhaustion, and because of many security and other concern
                     <h2 class="margin-top-0 text-primary">Password</h2>
                     <h3>Long Term Credential Mechanism</h3>
                     <hr class="primary">
+		    <br>
+                    <h3>STUN/TURN Server:<h3>
+                    <h3 data-wow-delay="0.5s" class="wow rubberBand text-primary">ltc.lab.vvc.niif.hu</h3>
+		    <br>
                 </div>
             </div>
         </div>
