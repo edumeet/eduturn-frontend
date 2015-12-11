@@ -258,7 +258,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <p class="text-faded">
                        Lorem ipsum dolor sit amet, ei sed tale appetere, at quo nonumes dissentias. Decore praesent sed et, sit id summo invenire efficiendi. Et mei commodo sententiae, vis an aeterno complectitur, elitr audire pro in. Sit sumo mutat epicuri ea, minim integre his cu. Ne his ridens docendi, ut vis noster audire. 
                     </p>
-                    <a href="#six" class="btn btn-default btn-xl page-scroll">Learn More</a>
+                    <a href="#five" class="btn btn-default btn-xl page-scroll">Learn More</a>
                 </div>
             </div>
         </div>
@@ -348,7 +348,7 @@ echo"                    <tr>
         </div>
         <div class="container text-center">
             <div class="call-to-action">
-                <a href="/restapi" target="ext" class="btn btn-default btn-lg wow flipInX">The REST API Documentation</a>
+                <a href="/restapi" target="ext" class="btn btn-default btn-lg wow pulse">The REST API Documentation</a>
             </div>
         </div>
         <hr/>       
@@ -432,7 +432,100 @@ echo"                    <tr>
             </div>
         </div>
     </section>
+    <section class="container-fluid bg-primary" id="five">
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+                <h2 class="text-center text-primary">Features</h2>
+                <hr>
+                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
+                    <h3>Traversal</h3>
+                    <div class="media-body media-middle">
+                        <p>The STUN/TURN service makes available traversal through packet fileters and NATs</p>
+                    </div>
+                    <div class="media-right">
+                        <i class="icon-lg ion-ios-bolt-outline"></i>
+                    </div>
+                </div>
+                <hr>
+                <div style="visibility: hidden; animation-name: none;" class="media wow fadeIn">
+                    <h3>IPv6 Ready!</h3>
+                    <div class="media-left">
+                        <a href="https://www.ripe.net/publications/ipv6-info-centre"><i class="icon-lg ion-ios-cloud-download-outline"></i></a>
+                    </div>
+                    <div class="media-body media-middle">
+                        <p>Makes available a smooth transition to the next generation Internet Protocol, IPv6.</p>
+                    </div>
+                </div>
+                <hr>
+                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
+                    <h3>WebRTC</h3>
+                    <div class="media-body media-middle">
+                        <p>Ready to serve WebRTC services.<br>Supports multiple auth mechansims.</p>
+                    </div>
+                    <div class="media-right">
+                        <i class="icon-lg ion-ios-videocam-outline"></i>
+                    </div>
+                </div>
+                <hr>
+                <div style="visibility: hidden; animation-name: none;" class="media wow fadeIn">
+                    <h3>Open</h3>
+                    <div class="media-left">
+                        <i class="icon-lg ion-ios-heart-outline"></i>
+                    </div>
+                    <div class="media-body media-middle">
+                        <p>All SW components are Open Source.<br>Transparent! Operated by multiple NRENs.</p>
+                    </div>
+                </div>
+                <hr>
+                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
+                    <h3>Reliable</h3>
+                    <div class="media-body media-middle">
+                        <p>It is distributed around European continent. REST use the closest server.</p>
+                    </div>
+                    <div class="media-right">
+                        <i class="icon-lg ion-ios-flask-outline"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <aside class="bg-dark">
+        <div class="container text-center">
+            <div class="call-to-action">
+                <h2 style="visibility: hidden; animation-name: none;" class="text-primary">Get Started</h2>
+                <a href="http://coturn.net" target="ext" class="btn btn-default btn-lg wow flipInX">This Service is based on: COTURN</a>
+            </div>
+            <br>
+            <hr>
+            <br>
+            <div class="row">
+                <div class="col-lg-10 col-lg-offset-1">
+                    <div class="row">
+                        <h6 class="wide-space text-center">THE SERVICE IS BASED ON OPEN STANDARDS</h6>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-social-tux" title="Debian Linux"></i>
+                        </div>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-ios-paper-outline" title="IETF Open Standards"></i>
+                        </div>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-ribbon-b" title="Standards"></i>
+                        </div>
+                        <div class="col-sm-3 col-xs-6 text-center">
+                            <i class="icon-lg ion-social-html5-outline" title="html 5"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </aside>
     <section id="five" class="no-padding">
+        <div class="row">
+            <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
+                <h2 class="text-center text-primary">Features</h2>
+                <hr>
+            </div>
+        </div>
         <div class="container-fluid">
             <div class="row no-gutter">
                 <div class="col-lg-4 col-sm-6">
@@ -618,93 +711,6 @@ echo"                    <tr>
              </div>
         </div>
     </section>
-    <section class="container-fluid" id="six">
-        <div class="row">
-            <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
-                <h2 class="text-center text-primary">Features</h2>
-                <hr>
-                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
-                    <h3>Simple</h3>
-                    <div class="media-body media-middle">
-                        <p>What could be easier? Get started fast with this landing page starter theme.</p>
-                    </div>
-                    <div class="media-right">
-                        <i class="icon-lg ion-ios-bolt-outline"></i>
-                    </div>
-                </div>
-                <hr>
-                <div style="visibility: hidden; animation-name: none;" class="media wow fadeIn">
-                    <h3>Free</h3>
-                    <div class="media-left">
-                        <a href="#alertModal" data-toggle="modal" data-target="#alertModal"><i class="icon-lg ion-ios-cloud-download-outline"></i></a>
-                    </div>
-                    <div class="media-body media-middle">
-                        <p>Yes, please. Grab it for yourself, and make something awesome with this.</p>
-                    </div>
-                </div>
-                <hr>
-                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
-                    <h3>Unique</h3>
-                    <div class="media-body media-middle">
-                        <p>Because you don't want your Bootstrap site, to look like a Bootstrap site.</p>
-                    </div>
-                    <div class="media-right">
-                        <i class="icon-lg ion-ios-snowy"></i>
-                    </div>
-                </div>
-                <hr>
-                <div style="visibility: hidden; animation-name: none;" class="media wow fadeIn">
-                    <h3>Popular</h3>
-                    <div class="media-left">
-                        <i class="icon-lg ion-ios-heart-outline"></i>
-                    </div>
-                    <div class="media-body media-middle">
-                        <p>There's good reason why Bootstrap is the most used frontend framework in the world.</p>
-                    </div>
-                </div>
-                <hr>
-                <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
-                    <h3>Tested</h3>
-                    <div class="media-body media-middle">
-                        <p>Bootstrap is matured and well-tested. It's a stable codebase that provides consistency.</p>
-                    </div>
-                    <div class="media-right">
-                        <i class="icon-lg ion-ios-flask-outline"></i>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-    <aside class="bg-dark">
-        <div class="container text-center">
-            <div class="call-to-action">
-                <h2 style="visibility: hidden; animation-name: none;" class="text-primary">Get Started</h2>
-                <a href="http://coturn.net" target="ext" class="btn btn-default btn-lg wow flipInX">This Service is based on: COTURN</a>
-            </div>
-            <br>
-            <hr>
-            <br>
-            <div class="row">
-                <div class="col-lg-10 col-lg-offset-1">
-                    <div class="row">
-                        <h6 class="wide-space text-center">THE SERVICE IS BASED ON OPEN STANDARDS</h6>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-social-tux" title="Debian Linux"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-ios-paper-outline" title="IETF Open Standards"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-ribbon-b" title="Standards"></i>
-                        </div>
-                        <div class="col-sm-3 col-xs-6 text-center">
-                            <i class="icon-lg ion-social-html5-outline" title="html 5"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </aside>
     <section id="last">
         <div class="container">
             <div class="row">
@@ -792,7 +798,7 @@ echo"                    <tr>
         <div class="modal-dialog modal-lg">
         <div class="modal-content">
         	<div class="modal-body">
-        		<img src="//placehold.it/1200x700/222?text=..." id="galleryImage" class="img-responsive" />
+        		<img src="" id="galleryImage" class="img-responsive" />
         		<p>
         		    <br>
         		    <button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">Close <i class="ion-android-close"></i></button>
