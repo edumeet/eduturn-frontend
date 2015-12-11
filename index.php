@@ -256,7 +256,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <h2 class="margin-top-0 text-primary">Welcome to STUN/TURN pilot</h2>
                     <br>
                     <p class="text-faded">
-                       Lorem ipsum dolor sit amet, ei sed tale appetere, at quo nonumes dissentias. Decore praesent sed et, sit id summo invenire efficiendi. Et mei commodo sententiae, vis an aeterno complectitur, elitr audire pro in. Sit sumo mutat epicuri ea, minim integre his cu. Ne his ridens docendi, ut vis noster audire. 
+With the IPv4 address exhaustion, and because of many security and other concerns the Internet users will connect more and more to the Internet through NAT and Packet Filters/Firewalls. Actually almost all service provider (e.g. mobile internet, homes) are using NAT. These environments makes hard or impossible the direct Real Time Communication (RTC) and this way we need a Standard based protocol called ICE that solves this traveral issue. ICE depends on STUN/TURN infrastructure.<br>The goal is in this pilot to demonstrate that a Europe wide STUN/TURN service could be build up from Open Source components to serve ICE agents, and RTC services like WebRTC and all in all our community.
                     </p>
                     <a href="#five" class="btn btn-default btn-xl page-scroll">Learn More</a>
                 </div>
@@ -429,6 +429,10 @@ echo"                    <tr>
                     <hr class="primary">
                     <h1>It is in the pipe<hr> comming soon...</h1>
                 </div>
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <p class="text-muted">Our project target is to support all available STUN/TURN authentication/authorization mechanism.<br>
+Unfortunately currently no OAUTH client implementation exists yet, but latter the service could be easily extended to support that when clients implementation will appear.</p>
+                </div>
             </div>
         </div>
     </section>
@@ -519,14 +523,19 @@ echo"                    <tr>
             </div>
         </div>
     </aside>
-    <section id="five" class="no-padding">
-        <div class="row">
-            <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
-                <h2 class="text-center text-primary">Features</h2>
-                <hr>
+    <section id="five" class="bg-primary">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-lg-offset-2 text-center">
+                    <h2 style="visibility: hidden; animation-name: none;" class="text-primary margin-top-0 wow fadeIn">How it works?</h2>
+                    <hr class="primary">
+	            <br>
+	            <br>
+	            <br>
+                </div>
             </div>
         </div>
-        <div class="container-fluid">
+        <div class="container-fluid no-padding">
             <div class="row no-gutter">
                 <div class="col-lg-4 col-sm-6">
                     <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-002.jpg">
@@ -813,10 +822,10 @@ echo"                    <tr>
         	<div class="modal-body">
         		<h2 class="text-center">GÉANT4 SA8 STUN/TURN Federation</h2>
         		<h5 class="text-center">
-        		    A free federated STUN/TURN service for the Higher Education Research community.
+        		    This is a free federated STUN/TURN service for the Higher Education Research community.
         		</h5>
         		<p class="text-justify">
-        		    Lorem ipsum dolor sit amet, ei sed tale appetere, at quo nonumes dissentias. Decore praesent sed et, sit id summo invenire efficiendi. Et mei commodo sententiae, vis an aeterno complectitur, elitr audire pro in. Sit sumo mutat epicuri ea, minim integre his cu. Ne his ridens docendi, ut vis noster audire.
+There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g. Firewalls/Packet Filters, NATs, , Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents RFC5245 that's are basing on STUN/TURN servers. ICE is an IETF standard, that makes possible RTC through NAT and Firewalls and help also in IPv6 smooth transition. It is widely deployed and used, for example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
          		</p>
         		<p class="text-center"><a href="https://www.assembla.com/spaces/gn4-webrtc/">More on the project page</a></p>
         		<br>
