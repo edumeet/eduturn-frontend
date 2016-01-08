@@ -509,14 +509,14 @@ fieldset[disabled] .btn-default.active {
 
 ::-moz-selection {
     text-shadow: none;
-    color: #fff;
-    background: #222;
+    color: #3399FF;
+    background: #9c27b0;
 }
 
 ::selection {
     text-shadow: none;
-    color: #fff;
-    background: #222;
+    color: #3399FF;
+    background: #9c27b0;
 }
 
 img::selection {
