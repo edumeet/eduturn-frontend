@@ -355,7 +355,7 @@ echo"                    <tr>
                 <a href="/restapi" target="ext" class="btn btn-default btn-lg wow pulse">The REST API Documentation</a>
             </div>
         </div>
-        <hr/>       
+        <hr/>
         <div class="container" id="tokens">
             <div class="row col-md-8 col-md-offset-2 custyle" id="token_table">
             <a href="#addServiceModal" data-toggle="modal" data-target="#addServiceModal" class="btn btn-primary btn-xs pull-right"><b>+</b> Add new service</a>
