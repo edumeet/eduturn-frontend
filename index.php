@@ -410,7 +410,7 @@ echo"                    <tr>
                     <div class="feature">
                         <i style="visibility: hidden; animation-delay: 0.2s; animation-name: none;" class="icon-lg ion-ios-locked-outline wow fadeInUp" data-wow-delay=".2s"></i>
                         <h3>Secure</h3>
-                        <p class="text-muted">Protection against many attacks</p>
+                        <p class="text-muted">Protection against attacks</p>
                     </div>
                 </div>
                 <div class="col-lg-3 col-md-3 text-center">
@@ -494,7 +494,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
                 <div style="visibility: hidden; animation-name: none;" class="media wow fadeInRight">
                     <h3>Reliable</h3>
                     <div class="media-body media-middle">
-                        <p>It is distributed around European continent. REST use the closest server.</p>
+                        <p>It is distributed around European continent.<br>If possible use the closest server.</p>
                     </div>
                     <div class="media-right">
                         <i class="icon-lg ion-ios-flask-outline"></i>
