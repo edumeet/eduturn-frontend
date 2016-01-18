@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Server Side Sample PHP code for the usage of the REST API</title>
+    <meta name="description" content="REST API STUN/TURN federation" />
+    <!-- base theme -->
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+    <!-- prettyprint -->
+    <link href="prettify.css" type="text/css" rel="css/stylesheet" />
+    <!-- prettyprint theme -->
+    <link rel="stylesheet" type="text/css" href="css/sunburst.css">
+  </head>
+  <body>
+  <script type="text/javascript" src="js/run_prettify.js"></script>
+<pre class="prettyprint">
+&lt;?php
+        $ip=$_SERVER[&quot;REMOTE_ADDR&quot;];
+        $apikey=&quot;api_key=PLACE_OF_YOUR_API_KEY&quot;;
+        //any desired application data (e.g. abc123)
+        $ufrag=&quot;abc123&quot;;
+        $url=&quot;https://brain.lab.vvc.niif.hu/restapi/stun?$apikey&quot;;
+
+        if(isset($ufrag)) {
+                $url .= &quot;&amp;ufrag=&quot;.$ufrag;
+        }
+
+        if(isset($ip)) {
+                $url .= &quot;&amp;ip=&quot;.$ip;
+        }
+
+        // create curl resource
+        $ch = curl_init();
+
+        // set url
+        curl_setopt($ch, CURLOPT_URL, $url);
+
+        //return the transfer as a string
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+
+        // $output contains the output string
+        $output = curl_exec($ch);
+
+        //handle curl error
+        if($output === false)
+        {
+            echo &quot;Curl error: &quot; . curl_error($ch);
+        }
+
+        // close curl resource to free up system resources
+        curl_close($ch);
+
+        $response = json_decode($output,true);
+
+        $result[] = array(&quot;urls&quot; =&gt; $response[&quot;uris&quot;], &quot;username&quot;=&gt; $response[&quot;username&quot;], &quot;credential&quot;=&gt; $response[&quot;password&quot;], credentialType =&gt; &quot;password&quot;);
+        $iceServers = json_encode($result);
+?&gt;
+</pre>
+</body>
+</html>
