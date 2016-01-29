@@ -790,13 +790,14 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
                 </div>
                 <div class="col-xs-12 col-sm-3 column">
                     <h4>Stay Posted</h4>
-                    <form>
+                    <form action="https://lists.geant.org/sympa">
                         <div class="form-group">
-                          <input type="hidden" name="token" value="<?php echo $token; ?>" />
-                          <input class="form-control" title="No spam, we promise!" placeholder="Tell us your email" type="text">
+                          <input type="hidden" name="list" value="webrtc" />
+                          <input type="hidden" name="action" value="subrequest" />
+                          <input class="form-control" title="No spam, we promise!" name="email" placeholder="Tell us your email" type="text">
                         </div>
                         <div class="form-group">
-                          <button class="btn btn-primary" data-toggle="modal" data-target="#alertModal" type="button">Subscribe for updates</button>
+                          <button class="btn btn-primary" type="submit">Subscribe for updates</button>
                         </div>
                     </form>
                 </div>
