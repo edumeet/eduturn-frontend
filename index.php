@@ -6,7 +6,22 @@ require_once('Db.php');
 $as = new SimpleSAML_Auth_Simple('default-sp');
 $as->requireAuth();
 $attributes = $as->getAttributes();
-//print_r($attributes);
+
+// check mandatory SAML attributes
+$mandatory=array("mail","eduPersonPrincipalName","displayName","eduPersonScopedAffiliation");
+foreach($mandatory as $v) {
+    if (isset($attributes[$v]) && isset($attributes[$v][0])){
+        $attrib[$v]=$attributes[$v];
+    } else {
+        if($v=="eduPersonPrincipalName" || $v=eduPersonScopedAffiliation){
+            header("Location: /attribute-error.html"); /* Redirect browser */
+            exit();
+        } else{
+            $attrib[$v][0]="NULL";
+        }
+    }
+}
+
 $logout_url='https://brain.lab.vvc.niif.hu/';
 //connectdb
 $db_rest = Db::Connection("coturn-rest");
@@ -90,9 +105,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 case "adduser":
         	    $query="INSERT INTO turnusers_lt (eppn,email,displayname,name,realm,hmackey) values(:eppn,:mail,:displayname,:username,:realm,:HA1)";
                     $sth = $db_ltc->prepare($query);
-                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attrib["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attrib["displayName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':username', $_POST['username'], PDO::PARAM_STR);
                     $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
                     $sth->bindValue(':HA1', md5($_POST['username'].':'.$_POST['realm'].':'.$_POST['password']), PDO::PARAM_STR);
@@ -105,9 +120,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 case "updateuser":
         	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id";
                     $sth = $db_ltc->prepare($query);
-                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attrib["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attrib["displayName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':username', $_POST['username'], PDO::PARAM_STR);
                     $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
                     $sth->bindValue(':HA1', md5($_POST['username'].':'.$_POST['realm'].':'.$_POST['password']), PDO::PARAM_STR);
@@ -123,9 +138,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         	    
         	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token,:service_url)";
                     $sth = $db_rest->prepare($query);
-                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attrib["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attrib["displayName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':token', $token, PDO::PARAM_STR);
                     $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
                     if($sth->execute()){
@@ -139,9 +154,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         	    
         	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url WHERE eppn=:eppn AND id=:id";
                     $sth = $db_rest->prepare($query);
-                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':displayname', $attributes["displayName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attrib["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':displayname', $attrib["displayName"][0], PDO::PARAM_STR);
                     $sth->bindValue(':token', $token, PDO::PARAM_STR);
                     $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
                     $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
@@ -168,8 +183,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
 
         	    $query="DELETE from ".$table." where eppn=:eppn and email=:mail and id=:id";
                     $sth = $db->prepare($query);
-                    $sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
-                    $sth->bindValue(':mail', $attributes["mail"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+                    $sth->bindValue(':mail', $attrib["mail"][0], PDO::PARAM_STR);
                     $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
                     if($sth->execute()){
                         echo $table;
@@ -282,7 +297,7 @@ With the IPv4 address exhaustion, and because of many security and other concern
 <?php       
 $query="SELECT * FROM turnusers_lt where eppn=:eppn";
 $sth = $db_ltc->prepare($query);
-$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+$sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
 if (empty($result)){
@@ -378,7 +393,7 @@ echo"                    <tr>
 <?php       
 $query="SELECT id,token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn";
 $sth = $db_rest->prepare($query);
-$sth->bindValue(':eppn', $attributes["eduPersonPrincipalName"][0], PDO::PARAM_STR);
+$sth->bindValue(':eppn', $attrib["eduPersonPrincipalName"][0], PDO::PARAM_STR);
 $sth->execute();
 $result = $sth->fetchAll(PDO::FETCH_ASSOC);
 foreach ($result as $row => $columns) {
@@ -744,11 +759,11 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
                         <input type="hidden" name="form" value="feedback">
                         <div class="col-md-4">
                             <label></label>
-                            <input class="form-control" placeholder="Name" type="text" name="Name" value="<?php echo $attributes['displayName'][0];?>">
+                            <input class="form-control" placeholder="Name" type="text" name="Name" value="<?php echo $attrib['displayName'][0];?>">
                         </div>
                         <div class="col-md-4">
                             <label></label>
-                            <input class="form-control" placeholder="Email" type="text" name="Email" value="<?php echo $attributes['mail'][0];?>">
+                            <input class="form-control" placeholder="Email" type="text" name="Email" value="<?php echo $attrib['mail'][0];?>">
                         </div>
                         <div class="col-md-4">
                             <label></label>
@@ -917,7 +932,7 @@ There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g.
 						<input type="hidden" name="row_id" class="row_id">
 						<label class="control-label col-sm-2">Username</label>
                                                 <div class="col-sm-10">
-						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attributes["mail"][0]); ?>" readonly>
+						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attrib["mail"][0]); ?>" readonly>
                                                 </div>
 					</div>
 					<div class="form-group">
@@ -952,7 +967,7 @@ There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g.
 						<input type="hidden" name="form" value="adduser">
 						<label class="control-label col-sm-2">Username</label>
                                                 <div class="col-sm-10">
-						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attributes["mail"][0]); ?>" readonly>
+						    <input class="form-control " type="text" name="username" value="<?php echo str_replace("@","_at_",$attrib["mail"][0]); ?>" readonly>
                                                 </div>
 					</div>
 					<div class="form-group">
