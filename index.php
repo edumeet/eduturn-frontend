@@ -13,7 +13,7 @@ foreach($mandatory as $v) {
     if (isset($attributes[$v]) && isset($attributes[$v][0])){
         $attrib[$v]=$attributes[$v];
     } else {
-        if($v=="eduPersonPrincipalName" || $v=eduPersonScopedAffiliation){
+        if($v=="eduPersonPrincipalName" || $v=="eduPersonScopedAffiliation"){
             header("Location: /attribute-error.html"); /* Redirect browser */
             exit();
         } else{
