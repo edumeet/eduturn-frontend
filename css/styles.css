@@ -528,3 +528,7 @@ img::-moz-selection {
     color: #fff;
     background: 0 0;
 }
+
+.gm-style-iw {
+   color: #9c27b0;
+}

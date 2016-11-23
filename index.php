@@ -234,7 +234,10 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                         <a class="page-scroll" href="#three">REST API</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#four">Oauth</a>
+                        <a class="page-scroll" href="#four">REST Servers on Maps</a>
+                    </li>
+                     <li>
+                        <a class="page-scroll" href="#five">Oauth</a>
                     </li>
                     <li>
                         <a class="page-scroll" href="#last">Contact</a>
@@ -445,7 +448,94 @@ echo"                    <tr>
             </div>
         </div>
     </section>
-    <section id="four">
+    <section class="bg-dark" id="four">
+<?php
+$query="select fqdn,organization,ip,latitude,longitude from server left join ip on ip.server_id=server.id order by latitude,longitude,server.id,ip.ipv6";
+$sth = $db_rest->prepare($query);
+if($sth->execute()){
+  //success
+ $result = $sth->fetchAll(PDO::FETCH_ASSOC);
+ $lat=0;
+ $lng=0;
+ $TURNservers=array();
+ foreach ($result as $row => $columns) {
+   if ( $lat == $columns["latitude"] && $lng == $columns["longitude"]) {
+     end($TURNservers);
+     $TURNservers[key($TURNservers)]['content'] .= "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>";
+   } else {   
+     $lng=$columns["longitude"];
+     $lat=$columns["latitude"];
+     $TURNserver= array( 
+       position => array (lat => (int)$lat, lng => (int)$lng), 
+       title => $columns["organization"], 
+       content => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
+     );
+     $TURNservers[] = $TURNserver;
+   }  
+ }
+ if (empty($result)){
+   print("DB error: empty result!");
+ }
+} else {
+   print("DB error: conncetion error!");
+};
+
+?>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="margin-top-0 text-primary">REST API on Maps</h2>
+                    <hr class="primary">
+                </div>
+            </div>
+
+                    <div id="map" style="height: 800px ; width:100%;"></div>
+                    <script>
+                
+                      function initMap() {
+                        var TURNservers = <?php echo json_encode($TURNservers);?>;
+                       
+                        var myLatLng = {lat: 51.72702830741035, lng: 8.898925500000018};
+                
+                        var map = new google.maps.Map(document.getElementById('map'), {
+                          zoom: 3,
+                          center: myLatLng,
+                          styles: [{"featureType":"administrative","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"administrative.province","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"landscape","elementType":"all","stylers":[{"saturation":-100},{"lightness":65},{"visibility":"on"}]},{"featureType":"poi","elementType":"all","stylers":[{"saturation":-100},{"lightness":"50"},{"visibility":"simplified"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"all","stylers":[{"lightness":"30"}]},{"featureType":"road.local","elementType":"all","stylers":[{"lightness":"40"}]},{"featureType":"transit","elementType":"all","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"water","elementType":"geometry","stylers":[{"hue":"#ffff00"},{"lightness":-25},{"saturation":-97}]},{"featureType":"water","elementType":"labels","stylers":[{"lightness":-25},{"saturation":-100}]}]
+                        });
+                
+                        function draw() {
+                          for (var i = 0; i < TURNservers.length; i++) {
+                            addMarkerWithTimeout(TURNservers[i], i * 200);
+                          }
+                        }
+                
+                        function addMarkerWithTimeout(TURNserver, timeout) {
+                          window.setTimeout(function() {
+                            var marker = new google.maps.Marker({
+                              position: TURNserver.position,
+                              map: map,
+                              title: TURNserver.title,
+                              animation: google.maps.Animation.DROP
+                            });
+                            marker.addListener('click', function() {
+                              var infowindow = new google.maps.InfoWindow({
+                                content: TURNserver.content
+                              });
+                              infowindow.open(map, marker);
+                              
+                            });
+                          }, timeout);
+                        }
+                        draw();
+                      }
+                      </script>
+                      <script async defer
+                          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdl6wVohcvpT5Q9hrIB4Uo8qVqKiwratg&callback=initMap">
+                      </script>
+        </div>
+        
+    </section>
+     <section id="five">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
