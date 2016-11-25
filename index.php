@@ -225,19 +225,22 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             <div class="navbar-collapse collapse" id="bs-navbar">
                 <ul class="nav navbar-nav">
                     <li>
-                        <a class="page-scroll" href="#one">Intro</a>
+                        <a class="page-scroll" href="#intro">Intro</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#two">Password</a>
+                        <a class="page-scroll" href="#ltc">Password</a>
                     </li>
                     <li>
-                        <a class="page-scroll" href="#three">REST API</a>
-                    </li>
-                    <li>
-                        <a class="page-scroll" href="#four">REST Servers on Maps</a>
+                        <a class="page-scroll" href="#ltc-map">Password Servers</a>
                     </li>
                      <li>
-                        <a class="page-scroll" href="#five">Oauth</a>
+                        <a class="page-scroll" href="#rest">REST API</a>
+                    </li>
+                    <li>
+                        <a class="page-scroll" href="#rest-map">REST Servers</a>
+                    </li>
+                     <li>
+                        <a class="page-scroll" href="#oauth">Oauth</a>
                     </li>
                     <li>
                         <a class="page-scroll" href="#last">Contact</a>
@@ -267,7 +270,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
             <source src="/video/Traffic-blurred2.mp4" type="video/mp4">Your browser does not support the video tag. I suggest you upgrade your browser.
         </video>
     </header>
-    <section class="bg-primary" id="one">
+    <section class="bg-primary" id="intro">
         <div class="container">
             <div class="row">
                 <div class="col-lg-6 col-lg-offset-3 col-md-8 col-md-offset-2 text-center">
@@ -276,12 +279,12 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <p class="text-faded">
 With the IPv4 address exhaustion, and because of many security and other concerns the Internet users will connect more and more to the Internet through NAT and Packet Filters/Firewalls. Actually almost all service provider (e.g. mobile internet, homes) are using NAT. These environments makes hard or impossible the direct Real Time Communication (RTC) and this way we need a Standard based protocol called ICE that solves this traveral issue. ICE depends on STUN/TURN infrastructure.<br>The goal is in this pilot to demonstrate that a Europe wide STUN/TURN service could be build up from Open Source components to serve ICE agents, and RTC services like WebRTC and all in all our community.
                     </p>
-                    <a href="#five" class="btn btn-default btn-xl page-scroll">Learn More</a>
+                    <a href="#oauth" class="btn btn-default btn-xl page-scroll">Learn More</a>
                 </div>
             </div>
         </div>
     </section>
-    <section id="two">
+    <section id="ltc">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -358,7 +361,91 @@ echo"                    <tr>
             </div>
         </div>
     </section>
-    <section class="bg-dark" id="three">
+    <section class="bg-dark" id="ltc-map">
+<?php
+$query="select fqdn,organization,ip,latitude,longitude from server left join ip on ip.server_id=server.id order by latitude,longitude,server.id,ip.ipv6";
+$sth = $db_rest->prepare($query);
+if($sth->execute()){
+  //success
+ $result = $sth->fetchAll(PDO::FETCH_ASSOC);
+ $lat=0;
+ $lng=0;
+ $TURNservers=array();
+ foreach ($result as $row => $columns) {
+   if ( $lat == $columns["latitude"] && $lng == $columns["longitude"]) {
+     end($TURNservers);
+     $TURNservers[key($TURNservers)]['content'] .= "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>";
+   } else {   
+     $lng=$columns["longitude"];
+     $lat=$columns["latitude"];
+     $TURNserver= array( 
+       position => array (lat => (float)$lat, lng => (float)$lng), 
+       title => $columns["organization"], 
+       content => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
+     );
+     $TURNservers[] = $TURNserver;
+   }  
+ }
+ if (empty($result)){
+   print("DB error: empty result!");
+ }
+} else {
+   print("DB error: conncetion error!");
+};
+
+?>
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-12 text-center">
+                    <h2 class="margin-top-0 text-primary">LTC Servers on Maps</h2>
+                    <hr class="primary">
+                </div>
+            </div>
+
+                    <div id="ltc-map-api" style="height: 600px ; width:100%;"></div>
+                    <script>
+                
+                      function initMapREST() {
+                        var TURNservers = <?php echo json_encode($TURNservers);?>;
+                       
+                        var myLatLng = {lat: 51.72702830741035, lng: 8.898925500000018};
+                
+                        var mapltc = new google.maps.Map(document.getElementById('ltc-map-api'), {
+                          zoom: 3,
+                          center: myLatLng,
+                          styles: [{"featureType":"administrative","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"administrative.province","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"landscape","elementType":"all","stylers":[{"saturation":-100},{"lightness":65},{"visibility":"on"}]},{"featureType":"poi","elementType":"all","stylers":[{"saturation":-100},{"lightness":"50"},{"visibility":"simplified"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"all","stylers":[{"lightness":"30"}]},{"featureType":"road.local","elementType":"all","stylers":[{"lightness":"40"}]},{"featureType":"transit","elementType":"all","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"water","elementType":"geometry","stylers":[{"hue":"#ffff00"},{"lightness":-25},{"saturation":-97}]},{"featureType":"water","elementType":"labels","stylers":[{"lightness":-25},{"saturation":-100}]}]
+                        });
+                
+                        function draw() {
+                          for (var i = 0; i < TURNservers.length; i++) {
+                            addMarkerWithTimeout(TURNservers[i], i * 200);
+                          }
+                        }
+                
+                        function addMarkerWithTimeout(TURNserver, timeout) {
+                          window.setTimeout(function() {
+                            var marker = new google.maps.Marker({
+                              position: TURNserver.position,
+                              map: mapltc,
+                              title: TURNserver.title,
+                              animation: google.maps.Animation.DROP
+                            });
+                            marker.addListener('click', function() {
+                              var infowindow = new google.maps.InfoWindow({
+                                content: TURNserver.content
+                              });
+                              infowindow.open(mapltc, marker);
+                              
+                            });
+                          }, timeout);
+                        }
+                        draw();
+                      }
+                      </script>
+       </div>
+        
+    </section>
+    <section class="bg-dark" id="rest">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -448,7 +535,7 @@ echo"                    <tr>
             </div>
         </div>
     </section>
-    <section class="bg-dark" id="four">
+    <section class="bg-dark" id="rest-map">
 <?php
 $query="select fqdn,organization,ip,latitude,longitude from server left join ip on ip.server_id=server.id order by latitude,longitude,server.id,ip.ipv6";
 $sth = $db_rest->prepare($query);
@@ -466,7 +553,7 @@ if($sth->execute()){
      $lng=$columns["longitude"];
      $lat=$columns["latitude"];
      $TURNserver= array( 
-       position => array (lat => (int)$lat, lng => (int)$lng), 
+       position => array (lat => (float)$lat, lng => (float)$lng), 
        title => $columns["organization"], 
        content => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
      );
@@ -484,20 +571,20 @@ if($sth->execute()){
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2 class="margin-top-0 text-primary">REST API on Maps</h2>
+                    <h2 class="margin-top-0 text-primary">REST API Servers on Maps</h2>
                     <hr class="primary">
                 </div>
             </div>
 
-                    <div id="map" style="height: 800px ; width:100%;"></div>
+                    <div id="rest-map-api" style="height: 600px ; width:100%;"></div>
                     <script>
                 
-                      function initMap() {
+                      function initMapLTC() {
                         var TURNservers = <?php echo json_encode($TURNservers);?>;
                        
                         var myLatLng = {lat: 51.72702830741035, lng: 8.898925500000018};
                 
-                        var map = new google.maps.Map(document.getElementById('map'), {
+                        var maprest = new google.maps.Map(document.getElementById('rest-map-api'), {
                           zoom: 3,
                           center: myLatLng,
                           styles: [{"featureType":"administrative","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"administrative.province","elementType":"all","stylers":[{"visibility":"off"}]},{"featureType":"landscape","elementType":"all","stylers":[{"saturation":-100},{"lightness":65},{"visibility":"on"}]},{"featureType":"poi","elementType":"all","stylers":[{"saturation":-100},{"lightness":"50"},{"visibility":"simplified"}]},{"featureType":"road","elementType":"all","stylers":[{"saturation":"-100"}]},{"featureType":"road.highway","elementType":"all","stylers":[{"visibility":"simplified"}]},{"featureType":"road.arterial","elementType":"all","stylers":[{"lightness":"30"}]},{"featureType":"road.local","elementType":"all","stylers":[{"lightness":"40"}]},{"featureType":"transit","elementType":"all","stylers":[{"saturation":-100},{"visibility":"simplified"}]},{"featureType":"water","elementType":"geometry","stylers":[{"hue":"#ffff00"},{"lightness":-25},{"saturation":-97}]},{"featureType":"water","elementType":"labels","stylers":[{"lightness":-25},{"saturation":-100}]}]
@@ -513,7 +600,7 @@ if($sth->execute()){
                           window.setTimeout(function() {
                             var marker = new google.maps.Marker({
                               position: TURNserver.position,
-                              map: map,
+                              map: maprest,
                               title: TURNserver.title,
                               animation: google.maps.Animation.DROP
                             });
@@ -521,7 +608,7 @@ if($sth->execute()){
                               var infowindow = new google.maps.InfoWindow({
                                 content: TURNserver.content
                               });
-                              infowindow.open(map, marker);
+                              infowindow.open(maprest, marker);
                               
                             });
                           }, timeout);
@@ -529,13 +616,10 @@ if($sth->execute()){
                         draw();
                       }
                       </script>
-                      <script async defer
-                          src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdl6wVohcvpT5Q9hrIB4Uo8qVqKiwratg&callback=initMap">
-                      </script>
-        </div>
+       </div>
         
     </section>
-     <section id="five">
+     <section id="oauth">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
@@ -551,7 +635,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
             </div>
         </div>
     </section>
-    <section class="container-fluid bg-primary" id="five">
+    <section class="container-fluid bg-primary" id="features">
         <div class="row">
             <div class="col-xs-10 col-xs-offset-1 col-sm-6 col-sm-offset-3 col-md-4 col-md-offset-4">
                 <h2 class="text-center text-primary">Features</h2>
@@ -638,7 +722,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
             </div>
         </div>
     </aside>
-    <section id="five" class="bg-primary">
+    <section id="background" class="bg-primary">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 text-center">
@@ -1220,6 +1304,16 @@ There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g.
             $('.service_url').val(service_url);
           });
     </script>
+    <script>
+    function initMap() {
+      initMapLTC();
+      initMapREST();
+    }
+    </script>
+    <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBdl6wVohcvpT5Q9hrIB4Uo8qVqKiwratg&callback=initMap">
+    </script>
+ 
   </body>
 </html>
 
