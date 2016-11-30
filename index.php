@@ -266,8 +266,8 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 <a href="#video-background" id="toggleVideo" data-toggle="collapse" class="btn btn-primary btn-xl">Toggle Video</a> &nbsp; <a href="#one" class="btn btn-primary btn-xl page-scroll">Get Started</a>
             </div>
         </div>
-        <video style="visibility: visible; animation-delay: 0.5s; animation-name: fadeIn;" autoplay="autoplay" loop="" class="fillWidth fadeIn wow collapse in" data-wow-delay="0.5s" poster="img/Traffic-blurred2.jpg" id="video-background">
-            <source src="/video/Traffic-blurred2.mp4" type="video/mp4">Your browser does not support the video tag. I suggest you upgrade your browser.
+        <video style="visibility: visible; animation-delay: 0.5s; animation-name: fadeIn;" autoplay="autoplay" loop="" class="fillWidth fadeIn wow collapse in" data-wow-delay="0.5s" poster="img/bg.jpg" id="video-background">
+            <source src="/video/bg.webm" type="video/mp4">Your browser does not support the video tag. I suggest you upgrade your browser.
         </video>
     </header>
     <section class="bg-primary" id="intro">
