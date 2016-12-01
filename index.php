@@ -75,9 +75,9 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                 
                     $mail->CharSet = "UTF-8";
                     
-                    $mail->setFrom('video-admin@niif.hu', 'Contact Webform');
+                    $mail->setFrom('stun-devops@listserv.niif.hu', 'Contact Webform');
                     // set recipient
-                    $mail->addAddress('video-admin@niif.hu', 'Voice Video Collaboration');     // Add a recipient
+                    $mail->addAddress('stun-devops@listserv.niif.hu', 'Voice Video Collaboration');     // Add a recipient
                     
                     $mail->isHTML(true);                                  // Set email format to HTML
                     
@@ -962,17 +962,17 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
                 <div class="col-xs-6 col-sm-3 column">
                     <h4>Information</h4>
                     <ul class="list-unstyled">
-                        <li><a href="https://www.assembla.com/spaces/gn4-webrtc/">Assembla</a></li>
-                        <li><a href="https://wiki.geant.org/display/SA8/GN4+SA8+Internal+Wiki">Wiki</a></li>
-                        <li><a href="https://intranet.geant.org/gn4/1/Activities/SA8/SitePages/Home.aspx">GÉANT SA8</a></li>
+                        <li><a href="https://wiki.geant.org/display/Multimedia/SIG-Multimedia+Home">SIG-MM</a></li>
+                        <li><a href="https://wiki.geant.org/display/WRTC/GN4-1+WebRTC+Roadmap">Roadmap</a></li>
                         <li><a href="https://wiki.geant.org/display/WRTC/TF-WebRTC+Task+Force+on+WebRTC">TF-WebRTC</a></li>
+                        <li><a href="https://wiki.geant.org/download/attachments/56918574/GN4-1%20SA8T2%20Tech%20Scout%20-%20STUN_TURN_ICE%20-%20v1.0-final.pdf?version=1&modificationDate=1461935196846&api=v2">TURN Tech Scout</a></li>
                      </ul>
                 </div>
                 <div class="col-xs-6 col-sm-3 column">
                     <h4>About</h4>
                     <ul class="list-unstyled">
-                        <li><a href="mailto:gn4-1-webrtc@lists.geant.org">Contact Us</a></li>
-                        <li><a href="mailto:gn4-1-webrtc@lists.geant.org?subject=Technical Support">Support</a></li>
+                        <li><a href="mailto:stun-devops@listserv.niif.hu">Contact Us</a></li>
+                        <li><a href="mailto:stun-devops@listserv.niif.hu?subject=Technical Support">Support</a></li>
                         <li><a href="privacy.html">Privacy Policy</a></li>
                         <li><a href="terms.html">Terms &amp; Conditions</a></li>
                     </ul>
@@ -1025,7 +1025,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
         		    This is a free federated STUN/TURN service for the Higher Education Research community.
         		</h5>
         		<p class="text-justify">
-There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g. Firewalls/Packet Filters, NATs, , Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents RFC5245 that's are basing on STUN/TURN servers. ICE is an IETF standard, that makes possible RTC through NAT and Firewalls and help also in IPv6 smooth transition. It is widely deployed and used, for example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
+There could be plenty of barriers that may prevent Peer to Peer (P2P) direct communication: e.g. Firewalls/Packet Filters, NATs, Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Next Gent IP transition (Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents. Which base on STUN/TURN servers. ICE is an IETF standard, that makes possible RTC through NAT and Firewalls and also help in IPv6 smooth transition. It is widely deployed and used.  For example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
          		</p>
         		<p class="text-center"><a href="#last" onclick="$('#aboutModal').modal('hide');">In case of any question please don't hesitate to contact us.</a></p>
         		<br>
@@ -1038,9 +1038,8 @@ There are plenty of barriers that prevents Peer to Peer (P2P) communication e.g.
         <div class="modal-dialog modal-sm">
         <div class="modal-content">
         	<div class="modal-body">
-        		<h2 class="text-center">Nice Job!</h2>
-        		<p class="text-center">You clicked the button, but it doesn't actually go anywhere because this is only a demo.</p>
-        		<p class="text-center"><a href="http://www.bootstrapzero.com">Learn more at BootstrapZero</a></p>
+        		<h2 class="text-center">Many thanks for your feedback!</h2>
+        		<p class="text-center">We will get back to you soon!</p>
         		<br>
         		<button class="btn btn-primary btn-lg center-block" data-dismiss="modal" aria-hidden="true">OK <i class="ion-android-close"></i></button>
         	</div>
