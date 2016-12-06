@@ -364,7 +364,7 @@ echo"                    <tr>
     <section class="bg-dark" id="ltc-map">
 <?php
 $query="select fqdn,organization,ip,latitude,longitude from server left join ip on ip.server_id=server.id order by latitude,longitude,server.id,ip.ipv6";
-$sth = $db_rest->prepare($query);
+$sth = $db_ltc->prepare($query);
 if($sth->execute()){
   //success
  $result = $sth->fetchAll(PDO::FETCH_ASSOC);
