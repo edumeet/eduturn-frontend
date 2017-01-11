@@ -379,10 +379,10 @@ if($sth->execute()){
    } else {   
      $lng=$columns["longitude"];
      $lat=$columns["latitude"];
-     $TURNserver= array( 
-       position => array (lat => (float)$lat, lng => (float)$lng), 
-       title => $columns["organization"], 
-       content => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
+     $TURNserver= array(
+       "position" => array ("lat" => (float)$lat, "lng" => (float)$lng), 
+       "title" => $columns["organization"], 
+       "content" => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
      );
      $TURNservers[] = $TURNserver;
    }  
