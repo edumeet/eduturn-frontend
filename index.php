@@ -3,7 +3,7 @@ use Hackzilla\PasswordGenerator\Generator\ComputerPasswordGenerator;
 require_once('vendor/autoload.php');
 require_once('Db.php');
 if (!isset($_SERVER["AUTH_TYPE"]) || empty($_SERVER["AUTH_TYPE"]) || $_SERVER["AUTH_TYPE"]!="Shibboleth") {
-  //header("Location: /Shibboleth.sso/Login"); /* Redirect browser */
+  header("Location: /Shibboleth.sso/Login"); /* Redirect browser */
   exit;
 }
 
@@ -82,7 +82,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     
                     $mail->isHTML(true);                                  // Set email format to HTML
                     
-                    $mail->Subject = 'Contact Form from brain.lab.vvc.niif.hu';
+                    $mail->Subject = 'Contact Form from '.default_realm;
                     $mail->Body    = "Name: ".$_POST['Name']."<br>Email: ".$_POST['Email']."<br>Phone: ".$_POST['Phone']."<br>Message:".$_POST['Message'];
                     $mail->AltBody = "Name: ".$_POST['Name']."\nEmail: ".$_POST['Email']."\nPhone: ".$_POST['Phone']."\nMessage:".$_POST['Message'];
                     
@@ -119,7 +119,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         	    }
                     break;
                 case "updateuser":
-        	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id";
+        	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id and realm='default_realm'";
                     $sth = $db_ltc->prepare($query);
                     $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attrib["mail"], PDO::PARAM_STR);
@@ -131,19 +131,20 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     if($sth->execute()){
         		//success
         	    } else {
-        		huston_we_have_a_problem('New user could not be inserted.');
+        		huston_we_have_a_problem('New user could not be updated.');
         	    }
                     break;
                  case "addservice":
                     $token = mkpasswd(32);
         	    
-        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url) values(:eppn,:mail,:displayname,:token,:service_url)";
+        	    $query="INSERT INTO token (eppn,email,displayname,token,service_url,realm) values(:eppn,:mail,:displayname,:token,:service_url,:realm)";
                     $sth = $db_rest->prepare($query);
                     $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attrib["mail"], PDO::PARAM_STR);
                     $sth->bindValue(':displayname', $attrib["displayName"], PDO::PARAM_STR);
                     $sth->bindValue(':token', $token, PDO::PARAM_STR);
                     $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
+                    $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
                     if($sth->execute()){
         		//success
         	    } else {
@@ -153,18 +154,19 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                  case "updateservice":
                     $token = mkpasswd(32);
         	    
-        	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url WHERE eppn=:eppn AND id=:id";
+        	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url,realm=:realm WHERE eppn=:eppn AND id=:id and realm='default_realm'";
                     $sth = $db_rest->prepare($query);
                     $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attrib["mail"], PDO::PARAM_STR);
                     $sth->bindValue(':displayname', $attrib["displayName"], PDO::PARAM_STR);
                     $sth->bindValue(':token', $token, PDO::PARAM_STR);
                     $sth->bindValue(':service_url', $_POST['service_url'], PDO::PARAM_STR);
+                    $sth->bindValue(':realm', $_POST['realm'], PDO::PARAM_STR);
                     $sth->bindValue(':id', $_POST['row_id'], PDO::PARAM_STR);
                     if($sth->execute()){
         		//success
         	    } else {
-        		huston_we_have_a_problem('New token could not be inserted.');
+        		huston_we_have_a_problem('New token could not be updated.');
         	    }
                     break;
                  case "del":
@@ -221,7 +223,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <span class="icon-bar"></span>
                     <span class="icon-bar"></span>
                 </button>
-                <a class="navbar-brand page-scroll" href="https://vvc.niif.hu/en/node/64"><i class="ion-ios-flask-outline"></i>NIIF VVC Laboratory</a>
+                <a class="navbar-brand page-scroll" href="https://wiki.geant.org/display/WRTC/GN4-1+WebRTC+Roadmap"><i class="ion-ios-flask-outline"></i> GN4 WebRTC Lab</a>
             </div>
             <div class="navbar-collapse collapse" id="bs-navbar">
                 <ul class="nav navbar-nav">
@@ -280,7 +282,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                     <p class="text-faded">
 With the IPv4 address exhaustion, and because of many security and other concerns the Internet users will connect more and more to the Internet through NAT and Packet Filters/Firewalls. Actually almost all service provider (e.g. mobile internet, homes) are using NAT. These environments makes hard or impossible the direct Real Time Communication (RTC) and this way we need a Standard based protocol called ICE that solves this traveral issue. ICE depends on STUN/TURN infrastructure.<br>The goal is in this pilot to demonstrate that a Europe wide STUN/TURN service could be build up from Open Source components to serve ICE agents, and RTC services like WebRTC and all in all our community.
                     </p>
-                    <a href="#oauth" class="btn btn-default btn-xl page-scroll">Learn More</a>
+                    <a href="#features" class="btn btn-default btn-xl page-scroll">Learn More</a>
                 </div>
             </div>
         </div>
@@ -302,7 +304,7 @@ With the IPv4 address exhaustion, and because of many security and other concern
         <div class="container" id="passwords">
             <div class="row col-md-8 col-md-offset-2 custyle" id="password_table">
 <?php       
-$query="SELECT * FROM turnusers_lt where eppn=:eppn";
+$query="SELECT * FROM turnusers_lt where eppn=:eppn and realm='".default_realm."'";
 $sth = $db_ltc->prepare($query);
 $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
 $sth->execute();
@@ -482,7 +484,7 @@ if($sth->execute()){
                 </tr>
             </thead>
 <?php       
-$query="SELECT id,token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn";
+$query="SELECT id,token,service_url,realm,(created + INTERVAL 1 YEAR) as expire FROM token where eppn=:eppn and realm='".default_realm."'";
 $sth = $db_rest->prepare($query);
 $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
 $sth->execute();
@@ -554,9 +556,9 @@ if($sth->execute()){
      $lng=$columns["longitude"];
      $lat=$columns["latitude"];
      $TURNserver= array( 
-       position => array (lat => (float)$lat, lng => (float)$lng), 
-       title => $columns["organization"], 
-       content => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
+       "position" => array ("lat" => (float)$lat, "lng" => (float)$lng), 
+       "title" => $columns["organization"], 
+       "content" => "FQDN: ".$columns["fqdn"]." - IP: ".$columns["ip"]."<br>"
      );
      $TURNservers[] = $TURNserver;
    }  
@@ -1001,7 +1003,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
                 </div>
             </div>
             <br>
-            <span class="pull-right text-muted small"><a href="http://www.niif.hu">NIIF Institute</a> ©2015 Mihály Mészáros</span>
+            <span class="pull-right text-muted small"><a href="http://www.niif.hu/en">NIIF Institute</a> ©2015 Mihály Mészáros</span>
         </div>
     </footer>
     <div id="galleryModal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
@@ -1021,12 +1023,12 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
         <div class="modal-dialog">
         <div class="modal-content">
         	<div class="modal-body">
-        		<h2 class="text-center">GÉANT4 SA8 STUN/TURN Federation</h2>
+        		<h2 class="text-center">GÉANT4 Federated STUN/TURN Pilot Service</h2>
         		<h5 class="text-center">
-        		    This is a free federated STUN/TURN service for the Higher Education Research community.
+        		    This is a free federated STUN/TURN pilot service for the Higher Education Research community.
         		</h5>
         		<p class="text-justify">
-There could be plenty of barriers that may prevent Peer to Peer (P2P) direct communication: e.g. Firewalls/Packet Filters, NATs, Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Next Gent IP transition (Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents. Which base on STUN/TURN servers. ICE is an IETF standard, that makes possible RTC through NAT and Firewalls and also help in IPv6 smooth transition. It is widely deployed and used.  For example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
+There could be plenty of barriers that may prevent Peer to Peer (P2P) direct communication: e.g. Firewalls/Packet Filters, NATs, Multiple Interfaces (Cable/VPN/WIFI/Mobile Internet), Next Gent IP transition (Multiple IP protocols IPv4,IPv6), etc. The goal is in this pilot to demonstrate that a Europe wide service could be build up from Open Source components that could serve our community Intercalative Connectivity Establishment (ICE) Agents. Which base on STUN/TURN servers. ICE is an IETF standard, that makes possible Real Time Communication (RTC) through NAT and Firewalls and also help in IPv6 smooth transition. It is widely deployed and used.  For example we could find it in VoIP phone, Telepresence/VideoConference systems,  and in ALL WebRTC clients like all Web browsers.
          		</p>
         		<p class="text-center"><a href="#last" onclick="$('#aboutModal').modal('hide');">In case of any question please don't hesitate to contact us.</a></p>
         		<br>
