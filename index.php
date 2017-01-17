@@ -460,7 +460,7 @@ if($sth->execute()){
         </div>
         <div class="container text-center">
             <div class="call-to-action">
-                <a href="/restapi" target="ext" class="btn btn-default btn-lg wow pulse">The REST API Documentation</a>
+                <a href="https://api.<?php echo default_realm ;?>" target="ext" class="btn btn-default btn-lg wow pulse">The REST API Documentation</a>
             </div>
         </div>
         <hr/>
