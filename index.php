@@ -8,12 +8,12 @@ if (!isset($_SERVER["AUTH_TYPE"]) || empty($_SERVER["AUTH_TYPE"]) || $_SERVER["A
 }
 
 // check SAML attributes
-$mandatory=array("mail","eppn","displayName",);
+$mandatory=array("affiliation","mail","eppn","displayName");
 foreach($mandatory as $v) {
     if (isset($_SERVER[$v]) && !empty($_SERVER[$v])){
         $attrib[$v]=$_SERVER[$v];
     } else {
-        if($v=="mail" || $v=="mail" || "eppn"){
+        if($v=="eppn"){
             header("Location: /attribute-error.html"); /* Redirect browser */
             exit();
         } else{
