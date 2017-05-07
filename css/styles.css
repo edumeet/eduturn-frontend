@@ -532,3 +532,8 @@ img::-moz-selection {
 .gm-style-iw {
    color: #9c27b0;
 }
+
+.no-margin {
+   margin-left:0;
+   margin-right:0;
+}

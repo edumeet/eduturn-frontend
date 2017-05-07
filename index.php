@@ -738,7 +738,7 @@ Unfortunately currently no OAUTH client implementation exists yet, but latter th
             </div>
         </div>
         <div class="container-fluid no-padding">
-            <div class="row no-gutter">
+            <div class="row no-gutter no-margin">
                 <div class="col-lg-4 col-sm-6">
                     <a href="#galleryModal" class="gallery-box" data-toggle="modal" data-src="img/slides-87-behave-10/slides-87-behave-10-page-002.jpg">
                         <img src="img/slides-87-behave-10/slides-87-behave-10-page-002.jpg" class="img-responsive" alt="Image 1">
