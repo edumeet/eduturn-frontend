@@ -119,7 +119,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
         	    }
                     break;
                 case "updateuser":
-        	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id and realm='default_realm'";
+        	    $query="UPDATE turnusers_lt SET hmackey=:HA1,email=:mail,displayname=:displayname,name=:username,realm=:realm WHERE eppn=:eppn AND id=:id and realm=:realm";
                     $sth = $db_ltc->prepare($query);
                     $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attrib["mail"], PDO::PARAM_STR);
@@ -154,7 +154,7 @@ if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQ
                  case "updateservice":
                     $token = mkpasswd(32);
         	    
-        	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url,realm=:realm WHERE eppn=:eppn AND id=:id and realm='default_realm'";
+        	    $query="UPDATE token set created=NOW(),email=:mail,displayname=:displayname,token=:token,service_url=:service_url,realm=:realm WHERE eppn=:eppn AND id=:id and realm=:realm";
                     $sth = $db_rest->prepare($query);
                     $sth->bindValue(':eppn', $attrib["eppn"], PDO::PARAM_STR);
                     $sth->bindValue(':mail', $attrib["mail"], PDO::PARAM_STR);
